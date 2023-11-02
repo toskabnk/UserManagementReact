@@ -1,7 +1,6 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'
+import React from 'react';
 import * as styled from '../styles/NavBarStyles';
-import { useAuth } from '../providers/AuthProvider';
+import { useAuth } from '../providers/AuthProvider/AuthContext';
 
 export function Navbar() {  
 

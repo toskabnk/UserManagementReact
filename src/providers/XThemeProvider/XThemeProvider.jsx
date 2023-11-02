@@ -1,12 +1,12 @@
 import React from 'react';
-import { XThemeProvider } from '@ximdex/xui-react/providers/';
+import { ThemeProvider } from '@mui/material/styles'
 import { createTheme } from '@mui/material';
 
 import useBool from '@ximdex/xui-react/hooks/useBool';
 
 import XThemeContext from './XThemeContext';
 
-const XthemeProvider = ({ children }) => {
+const XThemeProvider = ({ children }) => {
     const theme = createTheme(
         {
             palette: {
@@ -136,11 +136,11 @@ const XthemeProvider = ({ children }) => {
                 theme
             }}
         >
-            <XThemeProvider lightTheme={theme} >
+            <ThemeProvider theme={theme} >
                 {children}
-            </XThemeProvider>
+            </ThemeProvider>
         </XThemeContext.Provider>
     )
 };
 
-export default XthemeProvider;
+export default XThemeProvider;

@@ -3,16 +3,16 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import {BrowserRouter} from "react-router-dom"
-import XThemeProvider from './components/XThemeProvider';
+import Providers from './providers/Providers';
 
 
 ReactDOM.render(
   <React.StrictMode>
-    <XThemeProvider>
     <BrowserRouter> 
-      <App /> 
+      <Providers>
+        <App /> 
+    </Providers>
    </BrowserRouter> 
-   </XThemeProvider>
   </React.StrictMode>,
   document.getElementById('root')
 );

@@ -6,7 +6,7 @@ import { StyledForm, StyledDivSVG, StyledSVG } from '../styles/FormStyles';
 import userManagementApi from '../services/apiServices';
 import { DivErrorMessages, ListErrorMessages, ElementErrorMessages} from '../styles/ErrorMessagesStyles';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { useAuth } from '../providers/AuthProvider';
+import { useAuth } from '../providers/AuthProvider/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const StyledP = styled.p`

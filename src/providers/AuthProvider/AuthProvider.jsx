@@ -1,10 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import userManagementApi from '../services/apiServices';
+import userManagementApi from '../../services/apiServices';
 import { useNavigate } from 'react-router-dom';
+import AuthContext from './AuthContext';
 
-const AuthContext = createContext();
-
-export const AuthProvider = ({ children }) => {
+const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [name, setName] = useState(null);
   const [userID, setUserID] = useState(null);
@@ -63,6 +62,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export default AuthProvider;

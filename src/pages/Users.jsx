@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import userManagementApi from '../services/apiServices';
-import { useAuth } from '../providers/AuthProvider';
+import { useAuth } from '../providers/AuthProvider/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 function Users() { 
