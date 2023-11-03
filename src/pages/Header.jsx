@@ -1,10 +1,15 @@
 import React from 'react';
 import * as styled from '../styles/NavBarStyles';
 import { useAuth } from '../providers/AuthProvider/AuthContext';
+import { useSelector } from 'react-redux';
 
 export function Navbar() {  
 
-    const { isAuthenticated, name, logout } = useAuth();
+    const { isAuthenticated, isAdmin, logout } = useAuth();
+    const access_token = useSelector((state) => state.user.access_token)
+    const name = useSelector((state) => state.user.name)
+    
+    console.log(access_token);
 
     return(<>
         <header>
@@ -15,10 +20,24 @@ export function Navbar() {
                         <styled.NavBarLink to='/'>Home</styled.NavBarLink>
                     </styled.NavBarItems>
                     <styled.NavBarItems>
-                        <styled.NavBarLink to='/users'>Users</styled.NavBarLink>
+                                    <styled.NavBarLink to='/users'>Users</styled.NavBarLink>
                     </styled.NavBarItems>
                     {isAuthenticated ? (
                     <>
+                        {isAdmin ? (
+                            <>
+                                <styled.NavBarItems>
+                                    <styled.NavBarLink to='/roles'>Roles</styled.NavBarLink>
+                                </styled.NavBarItems>
+                                <styled.NavBarItems>
+                                    <styled.NavBarLink to='/organizations'>Organizations</styled.NavBarLink>
+                                </styled.NavBarItems>
+                            </>
+                        ) : (
+                            <>
+                             {/* Nada de momento */}
+                            </>
+                        )}
                         <styled.RightNavItem>
                             <styled.NavBarLink to='/user'>{name}</styled.NavBarLink>
                         </styled.RightNavItem><styled.RightNavItem>

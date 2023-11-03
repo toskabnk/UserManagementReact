@@ -8,6 +8,8 @@ import { DivErrorMessages, ListErrorMessages, ElementErrorMessages} from '../sty
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useAuth } from '../providers/AuthProvider/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from "react-redux";
+import { addUser } from "../redux/userSlice"
 
 const StyledP = styled.p`
     margin-top: 10px;
@@ -38,6 +40,7 @@ function LoginPage() {
     const [errore, setError] = useState(null);
 
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     
     console.log(isAuthenticated)
     //Comprueba si accedes a la pagina de login cuando estas autenticado
@@ -84,11 +87,16 @@ function LoginPage() {
                 let token = response.data.data.token;
                 let name = response.data.data.user.name;
                 let id = response.data.data.user.id;
+                let roles = response.data.data.user.roles;
 
-                localStorage.setItem('access_token', token);
-                localStorage.setItem('id', id);
-                localStorage.setItem('name', name);
+                let state = {
+                    name: name,
+                    access_token: token,
+                    id: id,
+                    roles: roles
+                };
 
+                dispatch(addUser(state));
                 //Pasados 3 segundos nos dirigimos a la raiz.
                 setTimeout(() => {
                     navigate('/');
@@ -97,6 +105,7 @@ function LoginPage() {
             
         })
         .catch((error) => {
+            console.log(error);
             //Inicializamos states
             setErrors('');
             setError('')
