@@ -5,6 +5,7 @@ import {XList, XSpinner, XContainerPage, XContainerSidebar, XContainerContent, X
 import styled from 'styled-components';
 import { useSelector } from 'react-redux';
 import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
+import { StyledFlexFullCenter } from '../App';
 
 const CenteredSpinner = styled(XSpinner)`
         width: 100px;
@@ -20,6 +21,8 @@ const CenteredSpinner = styled(XSpinner)`
 const StyledMain = styled.main`
     display: grid;
     grid-template-columns: auto;
+    width:100%;
+    height: 100%;
 
 `;
 
@@ -92,7 +95,7 @@ function Users() {
     },[]);
 
     return (
-        <>
+        <StyledFlexFullCenter>
             {loading ? <CenteredSpinner/> :
             <StyledMain>
             <XContainerPage navbarSize='unset' isScrollableY>
@@ -114,7 +117,9 @@ function Users() {
                 </XContainerContent>
             </XContainerPage>
             </StyledMain>}
-        </>
+        </StyledFlexFullCenter>
     ); 
 } 
 export default Users;
+
+

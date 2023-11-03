@@ -6,6 +6,7 @@ export const NavBar = styled.nav`
     background-color: #214f61;
     margin: 0;
     padding: 0;
+    width: 100%;
 `;
 
 export const NavBarList = styled.ul`

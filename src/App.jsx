@@ -9,10 +9,20 @@ import User from './pages/User'
 import Roles from './pages/Roles'
 import Organizations from './pages/Organizations'
 import { Navbar } from './pages/Header'
+import styled from 'styled-components';
 
+export const StyledFlexFullCenter = styled('div')`
+  display: flex;
+  flex-direction: column;
+  jusitfy-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+
+`
 function App() {
   return (
-    <>
+    <StyledFlexFullCenter>
       <Navbar/>
       <Routes> 
           <Route path="*" element={<Home/> } /> 
@@ -24,7 +34,7 @@ function App() {
           <Route path="/login" element={<LoginPage/> } />
           <Route path="/logout" element={<Logout/> } />
       </Routes> 
-  </>
+  </StyledFlexFullCenter>
   )
 }
 

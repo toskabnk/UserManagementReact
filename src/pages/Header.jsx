@@ -11,8 +11,7 @@ export function Navbar() {
     
     console.log(access_token);
 
-    return(<>
-        <header>
+    return(
             <styled.NavBar>
                 <styled.Logo src="https://openexpoeurope.com/wp-content/uploads/2016/12/Logo_ximdex_transpa_med.png"></styled.Logo>
                 <styled.NavBarList>
@@ -55,7 +54,6 @@ export function Navbar() {
                     )}
                 </styled.NavBarList>
             </styled.NavBar>
-        </header>
-    </>);
+    );
     
 }
