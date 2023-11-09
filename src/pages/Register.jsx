@@ -8,6 +8,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { StyledSectionBorder } from '../styles/SectionStyles';
 import { DivErrorMessages, ListErrorMessages, ElementErrorMessages} from '../styles/ErrorMessagesStyles';
 import { StyledForm, StyledDivSVG, StyledSVG } from '../styles/FormStyles';
+import { StyledFlexFullCenter } from '../App';
 
 const StyledP = styled.p`
     margin-top: 10px;
@@ -43,7 +44,6 @@ function Register() {
         password:"",
         password2: ""
     })
-    
     const {name, surname, birthdate, email, password, password2} = user;
     
     useEffect(() => {
@@ -112,7 +112,7 @@ function Register() {
     },[response])
 
     return (
-        <>
+        <StyledFlexFullCenter height={"100vh"}>
             <StyledSectionBorder>
                     <StyledP>Enter your information:</StyledP>
                     <StyledForm>
@@ -148,7 +148,7 @@ function Register() {
                 </DivErrorMessages>
             )}
             </StyledModal>
-        </> 
+        </StyledFlexFullCenter> 
     ); 
 } 
 export default Register; 

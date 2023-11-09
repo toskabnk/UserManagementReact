@@ -1,4 +1,3 @@
-import React from 'react';
 import * as styled from '../styles/NavBarStyles';
 import { useAuth } from '../providers/AuthProvider/AuthContext';
 import { useSelector } from 'react-redux';
@@ -18,13 +17,13 @@ export function Navbar() {
                     <styled.NavBarItems>
                         <styled.NavBarLink to='/'>Home</styled.NavBarLink>
                     </styled.NavBarItems>
-                    <styled.NavBarItems>
-                                    <styled.NavBarLink to='/users'>Users</styled.NavBarLink>
-                    </styled.NavBarItems>
                     {isAuthenticated ? (
                     <>
                         {isAdmin ? (
                             <>
+                                <styled.NavBarItems>
+                                    <styled.NavBarLink to='/users'>Users</styled.NavBarLink>
+                                </styled.NavBarItems>
                                 <styled.NavBarItems>
                                     <styled.NavBarLink to='/roles'>Roles</styled.NavBarLink>
                                 </styled.NavBarItems>

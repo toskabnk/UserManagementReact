@@ -8,8 +8,8 @@ export default class User {
         this.updatedAt = userDTO.updated_at || null;
         this.surname = userDTO.surname;
         this.birthDate = userDTO.birth_date;
-        this.password = userDTO.password;
-        this.passwordConfirmation = userDTO.password_confirmation || null;
+        this.password = userDTO.password || '';
+        this.passwordConfirmation = userDTO.password_confirmation || '';
         this.roles = userDTO.roles || null;
         this.organizations = userDTO.organizations || null;
     }

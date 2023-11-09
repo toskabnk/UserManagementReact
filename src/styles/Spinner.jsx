@@ -1,3 +1,4 @@
+import { XSpinner } from '@ximdex/xui-react/material';
 import React from 'react';
 import styled, {css, keyframes} from 'styled-components';
 
@@ -27,4 +28,13 @@ export const LoadingDiv = styled.div`
     border-top: 10px solid #214f61; /* Black */
     border-radius: 50%;
     animation: ${spinner} 1.5s linear infinite;
+`;
+
+export const CenteredSpinner = styled(XSpinner)`
+        width: 100px;
+        height: 100px;
+        position: absolute;
+        transform: translate(-50%, -50%);
+        top: ${props => (props.top ? props.top : '50%')};
+        left: ${props => (props.left ? props.left : '60%')};
 `;
