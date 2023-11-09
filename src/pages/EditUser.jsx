@@ -3,9 +3,10 @@ import { StyledFullCenter } from "../styles/Containers";
 import userManagementApi from '../services/apiServices';
 import { useSelector } from 'react-redux';
 import User from '../models/User';
-import { XPopUp, XModal } from '@ximdex/xui-react/material';
+import { XPopUp } from '@ximdex/xui-react/material';
 import UserForm from '../components/UserForm';
 import { useSearchParams } from 'react-router-dom';
+import ErrorsModal from '../components/ErrorsModal';
 
 const EditUser = () => {
     let [searchParams] = useSearchParams();
@@ -157,6 +158,11 @@ const EditUser = () => {
             dataLoading={dataLoading}
             handleSubmit={handleSubmit}
             edit={true}
+            />
+            <ErrorsModal
+            openModal={openModal}
+            setOpenModal={setOpenModal}
+            errors={errors}
             />
         </StyledFullCenter>
     )

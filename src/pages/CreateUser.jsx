@@ -5,10 +5,13 @@ import { useSelector } from 'react-redux';
 import User from '../models/User';
 import { XPopUp } from '@ximdex/xui-react/material';
 import UserForm from '../components/UserForm';
+import ErrorsModal from '../components/ErrorsModal';
 
 
 function CreateUser() {
     const token = useSelector((state) => state.user.access_token);
+    const [errors, setErrors] = useState(null);
+    const [openModal,setOpenModal] = useState(false);
     const [rolesFixed, setRolesFixed] = useState([]);
     const [orgFixed, setOrgFixed] = useState([]);
     const [loading, setLoading] = useState(false)
@@ -119,6 +122,13 @@ function CreateUser() {
                 popUpPosition: "top",
                 iconColor: "red",
             });
+            const responseData = error.response.data;
+            if (responseData.data && responseData.data.errors) {
+                const validationErrors = responseData.data.errors;
+                setErrors(validationErrors);
+                setOpenModal(true);
+            }
+            setLoading(false);
             setLoading(false);
         })
     }
@@ -136,6 +146,11 @@ function CreateUser() {
             orgFixed={orgFixed}
             loading={loading} 
             handleSubmit={handleSubmit}
+            />
+            <ErrorsModal
+            openModal={openModal}
+            setOpenModal={setOpenModal}
+            errors={errors}
             />
         </StyledFullCenter>
     )

@@ -21,3 +21,10 @@ export const ListErrorMessages = styled.ul`
 export const ElementErrorMessages = styled.li`
     width: 250px;
 `;
+
+export const StyledP = styled.p`
+    margin-top: 10px;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+`;

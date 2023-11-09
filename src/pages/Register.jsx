@@ -1,33 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { XInput, XButton, XModal } from '@ximdex/xui-react/material';
+import { XInput, XButton } from '@ximdex/xui-react/material';
 import {useNavigate } from "react-router-dom";
-import styled from 'styled-components';
 import User from '../models/User';
 import userManagementApi from '../services/apiServices';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { StyledSectionBorder } from '../styles/SectionStyles';
-import { DivErrorMessages, ListErrorMessages, ElementErrorMessages} from '../styles/ErrorMessagesStyles';
 import { StyledForm, StyledDivSVG, StyledSVG } from '../styles/FormStyles';
 import { StyledFlexFullCenter } from '../App';
+import ErrorsModal from '../components/ErrorsModal';
+import { StyledP } from '../styles/ErrorMessagesStyles';
 
-const StyledP = styled.p`
-    margin-top: 10px;
-    text-align: center;
-    font-size: 1.2rem;
-    font-weight: bold;
-`;
-
-const StyledModal = styled(XModal)`
-    background-color: white;
-    border: 2px solid #214f61;
-    border-radius: 16px;
-    height: 300px;
-    width: 300px;
-    position: absolute;
-    transform: translate(-50%, -50%);
-    top: 50%;
-    left: 50%;
-`;
 
 function Register() { 
     const [error, setError] = useState('');
@@ -63,7 +45,12 @@ function Register() {
         });
     }
 
-    async function register() {
+    function handleSubmit(event){
+        event.preventDefault();
+        register();
+    }
+
+    const register = async() => {
         setIsLoading(true);
         const userDTO = {
             name: name,
@@ -115,13 +102,13 @@ function Register() {
         <StyledFlexFullCenter height={"100vh"}>
             <StyledSectionBorder>
                     <StyledP>Enter your information:</StyledP>
-                    <StyledForm>
+                    <StyledForm onSubmit={handleSubmit}>
                         <XInput id='name' type='text' label='Name' required={true} size='small' fullWidth value={name} onChange={(e) => onInputChange(e)} />
-                        <XInput id='surname' type='text' label='Surname' required={true} size='small' fullWidth value={surname} onChange={(e) => onInputChange(e)} />
-                        <XInput id='birthdate' type='date' label='Birth Date' required={true} size='small' fullWidth value={birthdate} onChange={(e) => onInputChange(e)} />
-                        <XInput id='email' type='text' label='Email' required={true} size='small' fullWidth value={email} onChange={(e) => onInputChange(e)} />
-                        <XInput id='password' type='password' label='Password' required={true} size='small' fullWidth value={password} onChange={(e) => onInputChange(e)} />
-                        <XInput id='password2' type='password' label='Repeat Password' required={true} size='small' fullWidth value={password2} onChange={(e) => onInputChange(e)} />
+                        <XInput id='surname' type='text' label='Surname' required size='small' fullWidth value={surname} onChange={(e) => onInputChange(e)} />
+                        <XInput id='birthdate' type='date' label='Birth Date' required size='small' fullWidth value={birthdate} onChange={(e) => onInputChange(e)} />
+                        <XInput id='email' type='text' label='Email' required size='small' fullWidth value={email} onChange={(e) => onInputChange(e)} />
+                        <XInput id='password' type='password' label='Password' required size='small' fullWidth value={password} onChange={(e) => onInputChange(e)} />
+                        <XInput id='password2' type='password' label='Repeat Password' required size='small' fullWidth value={password2} onChange={(e) => onInputChange(e)} />
                         {error && <p style={{ color: 'red' }}>{error}</p>}
                         {isLoading ? 
                             (isSuccess ? 
@@ -133,21 +120,14 @@ function Register() {
                                     </StyledSVG>
                                 </StyledDivSVG>
                                 : <LoadingSpinner />) 
-                            : <XButton onClick={register} size='small'>Register</XButton>}
+                            : <XButton type="submit" size='small'>Register</XButton>}
                     </StyledForm>
             </StyledSectionBorder>
-            <StyledModal setOpenModal={setOpenModal} openModal={openModal}>
-            {errors && (
-                <DivErrorMessages>
-                    <StyledP>Errors: </StyledP>
-                    <ListErrorMessages>
-                        {Object.keys(errors).map(key => (
-                        <ElementErrorMessages key={key}>{errors[key][0]}</ElementErrorMessages>
-                        ))}
-                    </ListErrorMessages>
-                </DivErrorMessages>
-            )}
-            </StyledModal>
+            <ErrorsModal
+            openModal={openModal}
+            setOpenModal={setOpenModal}
+            errors={errors}
+            />
         </StyledFlexFullCenter> 
     ); 
 } 
