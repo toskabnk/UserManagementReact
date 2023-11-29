@@ -34,26 +34,42 @@ function Organizations() {
   const [data, setData] = useState(null);
   const token = useSelector((state) => state.user.access_token);
   const [infoRows, setInfoRows] = useState([]);
-  
+  const [fetchingInfoRows, setFetchingInfoRows] = useState([])
+
   const navigate = useNavigate();
 
   const loadDetails = async (id, position) => {
-    await userManagementApi.get(`organization/${id}`, {bearerToken: token})
-    .then((response) => {
-        let copy = infoRows;
-        copy[position] = response.data.data.organization;
-        setInfoRows(copy)
-    })
-    .catch((error) => {
-        console.log(error)
-    })
+    if(!infoRows[index]){
+      let copy = [...fetchingInfoRows]
+      copy[index] = true
+      setFetchingCourse(copy)
 
-    console.log(infoRows)
+      await userManagementApi.get(`organization/${id}`, {bearerToken: token})
+      .then((response) => {
+          let copy = [...infoRows];
+          copy[position] = response.data.data.organization;
+          setInfoRows(copy)
+      })
+      .catch((error) => {
+          console.log(error)
+      }).finally(() => {
+        let copy = [...fetchingCourse]
+        copy[index] = false
+        setFetchingCourse(copy)
+      });
+
+    }
+   
   }
-  
+
+
   useEffect(() => {
-    console.log(infoRows)
-  },[infoRows]);
+      let loading = []
+      data.forEach((activity) => {
+          loading.push(false)
+      })
+      setFetchingInfoRows(loading)
+  },[data]);
     
     
     const options = [
@@ -207,11 +223,75 @@ function Organizations() {
                       </p>
                     </XRowContent>
                     {/* <div className='detail-rows-container'> */}
-                    <XRowDetails key="XRowDetails">
+                    {/* <XRowDetails key="XRowDetails">
                       <>
-                        {infoRows[index] !== undefined ? (<p>Algo</p>):(<p>Loading...</p>)}
-                      </>
-                    </XRowDetails>
+                        {fetchingInfoRows[index] ? (<p>Loading...</p>) : (<p>Algo</p>)}
+                      </> */}
+                      {/* {fetchingInfoRows[index] 
+                            ? 
+                                <XRowDetails
+                                    key={"XRowDetails_loading"}
+                                    style={{justifyContent:'center'}}
+                                    // controlsDetails={[]}
+                                >
+                                    <CircularProgress color='primary' size={'50px'} style={{padding: '10px'}}/>
+                                </XRowDetails>
+                            :
+                            <React.Fragment key="XRowDetails">
+                                <XRowDetails key={"XRowDetails_" + "item1"}>
+                                  <p style={{marginRight:'1em'}}><strong>Course Description: </strong>
+                                    {coursesDetails[index] && coursesDetails[index].dam_data !== "" &&
+                                    coursesDetails[index]?.dam_data?.data.description.description 
+                                      ? coursesDetails[index]?.dam_data?.data.description.description
+                                      : "No description assigned yet"}
+                                  </p>
+                                </XRowDetails>
+                                <XRowDetails key={"XRowDetails_" + "item2"}>
+                                  <p style={{marginRight:'1em'}}><strong>Category: </strong>
+                                    {(coursesDetails[index] && coursesDetails[index].dam_data !== null &&
+                                      coursesDetails[index]?.dam_data?.data?.description?.category) 
+                                        ? coursesDetails[index].dam_data.data.description.category.replaceAll(/_/g, " ")
+                                        : "No category assigned yet"
+                                    }
+                                  </p>
+                                </XRowDetails>
+                                <XRowDetails key={"XRowDetails_" + "item3"}>
+                                <p style={{marginRight:'1em'}}> <strong>{coursesDetails[index] && coursesDetails[index].dam_data !== null && coursesDetails[index].dam_data?.data.description.skills?.length === 1 ? "Course skill: " : "Course skills: "}</strong>
+                                    {coursesDetails[index] && coursesDetails[index].dam_data !== null && 
+                                    coursesDetails[index]?.dam_data?.data.description.skills?.length > 0 ? (
+                                      coursesDetails[index]?.dam_data?.data.description.skills?.map((skill, i) => (
+                                          <span key={i}>
+                                          {skill}
+                                          {coursesDetails[index].dam_data?.data.description.skills?.length === i + 1 ? "" :
+                                              coursesDetails[index].dam_data?.data.description.skills?.length - 1 === i + 1 ? " and " : ", "}
+                                          </span>
+                                      ))
+                                      ) : (
+                                      <span>No skills assigned yet</span>
+                                      )}        
+                                  </p>              
+                                </XRowDetails>
+                                <XRowDetails key={"XRowDetails_" + "item4"}>
+                                  <p style={{marginRight:'1em'}}><strong>Student vacants: </strong>
+                                    {coursesDetails[index] && coursesDetails[index].student_vacants ? coursesDetails[index].student_vacants
+                                      : "No vacants assigned yet"}
+                                  </p>
+                                </XRowDetails>
+                                <XRowDetails key={"XRowDetails_" + "item5"}>
+                                  <p style={{marginRight:'1em'}}><strong>Students in course: </strong>
+                                    {coursesDetails[index] && coursesDetails[index]?.students_in_course}
+                                  </p>
+                                </XRowDetails>
+                                <XRowDetails key={"XRowDetails_" + "item5"}>
+                                  <p style={{marginRight:'1em'}}><strong>Status: </strong>
+                                    {coursesDetails[index] && coursesDetails[index]?.dam_data !== null &&
+                                     coursesDetails[index]?.dam_data?.active === 1 ? 'Published'
+                                      : "Unpublished"}
+                                  </p>
+                                </XRowDetails>
+                            </React.Fragment>
+                        } */}
+                    {/* </XRowDetails> */}
                     <XRowExtraDetails
                       key={"XRowExtraDetails"}
                       extraDetails={[
