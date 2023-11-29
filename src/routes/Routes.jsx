@@ -8,22 +8,52 @@ import Logout from '../pages/Logout'
 import User from '../pages/User'
 import Roles from '../pages/Roles'
 import Organizations from '../pages/Organizations'
-import CreateUser from '../pages/CreateUser';
-import EditUser from '../pages/EditUser';
+import CreateMember from '../pages/CreateMember';
+import EditMember from '../pages/EditMember';
+import CreateRole from '../pages/CreateRole';
+import Clients from '../pages/Clients';
+import CreateClient from '../pages/CreateClient';
+import EditClient from '../pages/EditClient';
+import EditRole from '../pages/EditRoles';
+import CreateOrganization from '../pages/CreateOrganization';
+import EditOrganization from '../pages/EditOrganization';
+import ProtectedSuperAdminRoute from './ProtectedSuperAdmin';
+import ProtectedRoute from './ProtectedRoute';
+import ProtectedAdminRoutes from './ProtectedAdminRoutes';
 
 const Routes = () => {
     return (
         <ReactRoutes>
-            <Route path="/user" element={<User/> } />
-            <Route path="/users" element={<Users/> } />
-            <Route path="/roles" element={<Roles/> } />
-            <Route path="/organizations" element={<Organizations/> } /> 
+            {/* Rutas publicas */}
             <Route path="/register" element={<Register/> } />
             <Route path="/login" element={<LoginPage/> } />
             <Route path="/logout" element={<Logout/> } />
-            <Route path="/createUser" element={<CreateUser/> }/>
-            <Route path="/editUser" element={<EditUser/> }/>
             <Route path="*" element={<Home/> } /> 
+            
+            {/* Rutas privadas */}
+            <Route element={<ProtectedRoute/>}>
+                <Route path="/user" element={<User/> } />
+
+                {/* Rutas privadas de administrador */}
+                <Route element={<ProtectedAdminRoutes/>}>
+                    <Route path="/users" element={<Users/> } />
+                    <Route path="/roles" element={<Roles/> } />
+                    <Route path="/organizations" element={<Organizations/> } /> 
+                    <Route path="/createMember" element={<CreateMember/> }/>
+                    <Route path="/editMember" element={<EditMember/> }/>
+                    <Route path="/createRole" element={<CreateRole/> }/>
+                    <Route path="/editRole" element={<EditRole/> }/>
+                    <Route path="/createOrganization" element={<CreateOrganization/> }/>
+                    <Route path="/editOrganization" element={<EditOrganization/> } />
+
+                    {/* Rutas privadas de super administrador */}
+                    <Route element={<ProtectedSuperAdminRoute/>}>
+                        <Route path="/clients" element={<Clients/> } />
+                        <Route path="/createClient" element={<CreateClient/> }/>
+                        <Route path="/editClient" element={<EditClient/> }/>
+                    </Route>
+                </Route>
+            </Route>
         </ReactRoutes>
     )
 };

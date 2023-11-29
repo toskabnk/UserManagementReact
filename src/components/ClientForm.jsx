@@ -3,16 +3,16 @@ import { XCard, XDropdown, XInput } from '@ximdex/xui-react/material';
 import { Stack} from '@mui/material';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare, faCoffee} from "@fortawesome/free-solid-svg-icons";
+import { faPenToSquare} from "@fortawesome/free-solid-svg-icons";
 import { StyledForm } from '../styles/FormStyles';
 import { CenteredSpinner } from "../styles/Spinner";
 
 
-const UserForm = ({user, setUser, selectedRoles, setSelectedRoles, selectedOrgs, setSelectedOrgs, rolesFixed, orgFixed, loading, handleSubmit, dataLoading=false, edit=false}) => {
+const ClientForm = ({client, setClient, selectedRoles, setSelectedRoles, rolesFixed, loading, handleSubmit, dataLoading=false, edit=false, isDisabled=false}) => {
     
     const onInputChange = (e) => {
-        setUser({
-            ...user,
+        setClient({
+            ...client,
             [e.target.id]: e.target.value
         });
     }
@@ -34,9 +34,9 @@ const UserForm = ({user, setUser, selectedRoles, setSelectedRoles, selectedOrgs,
         }
     };
 
-    const {name, surname, birthDate, email, password, password2} = user;
+    const {name, email, password, password2, organization_name, organization_description} = client;
 
-    const tooltip = <FontAwesomeIcon icon={faPenToSquare} size='1x' title={edit ? 'Edit User' : 'Create User'} />;
+    const tooltip = <FontAwesomeIcon icon={faPenToSquare} size='1x' title={edit ? 'Edit Client' : 'Create Client'} />;
 
     return (
         <StyledForm onSubmit={handleSubmit}>
@@ -44,20 +44,25 @@ const UserForm = ({user, setUser, selectedRoles, setSelectedRoles, selectedOrgs,
                 {dataLoading ? (<CenteredSpinner top={"45%"} left={"45%"}/>)
                  : (
                     <StyledPageContainer>
-                    <h2>{edit ? 'Edit User Form' : 'Create User Form'}</h2>
-                    <XCard title='User data' isCollapsable={true} tooltip={tooltip}>
+                    <h2>{edit ? 'Edit Client Form' : 'Create Client Form'}</h2>
+                    <XCard title='Client data'  tooltip={tooltip}>
                     <StyledPageMarginContainer>
-                        <Stack spacing={2} direction="row" sx={{marginBottom: 4}}>
-                            <XInput id='name' type="text" label="First Name" value={name} onChange={(e) => onInputChange(e)} fullWidth required/>
-                            <XInput id='surname' type="text" label="Last Name" value={surname} onChange={(e) => onInputChange(e)} fullWidth required/>
-                        </Stack>
-                        <XInput id='birthDate' type="date" label="Date of Birth" value={birthDate} onChange={(e) => onInputChange(e)} fullWidth required sx={{mb: 4}}/>
-                        <XInput id='email' type="email" label="Email" value={email} onChange={(e) => onInputChange(e)} fullWidth required sx={{mb: 4}}/>
-                        <XInput id='password' disabled={edit ? true : false} type="password" label="Password" value={password} onChange={(e) => onInputChange(e)} required fullWidth sx={{mb: 4}}/>
-                        <XInput id='password2' disabled={edit ? true : false} type="password" label="Repeat password" value={password2} onChange={(e) => onInputChange(e)} required fullWidth sx={{mb: 4}}/>
+                        <XInput id='name' type="text" label="Name" value={name} onChange={(e) => onInputChange(e)} fullWidth required/>
+                        <XInput id='email' type="email" label="Email" value={email} onChange={(e) => onInputChange(e)} fullWidth required/>
+                        <XInput id='password' disabled={edit ? true : false} type="password" label="Password" value={password} onChange={(e) => onInputChange(e)} required fullWidth/>
+                        <XInput id='password2' disabled={edit ? true : false} type="password" label="Repeat password" value={password2} onChange={(e) => onInputChange(e)} required fullWidth/>
                     </StyledPageMarginContainer>
                     </XCard>
-                    <XCard title='Roles' isCollapsable={true} tooltip={tooltip}>
+                    {edit ? null : ( 
+                        <XCard title='Client Organization Data (Optional)' tooltip={tooltip}>
+                            <StyledPageMarginContainer>
+                                <Stack spacing={3}  direction="column" justifyContent="flex-start" alignItems="center" sx={{marginBottom: 4}}>
+                                <XInput id='organization_name' type="organization_name" label="Organization name" value={organization_name} onChange={(e) => onInputChange(e)} fullWidth/>
+                                <XInput id='organization_description' type="organization_description" label="Organization Description" value={organization_description} onChange={(e) => onInputChange(e)} fullWidth/></Stack>
+                            </StyledPageMarginContainer>
+                        </XCard>
+                    )}
+                    <XCard title='Existing Roles' tooltip={tooltip}>
                         <StyledPageMarginContainer>
                             <Stack spacing={3}  direction="column" justifyContent="flex-start" alignItems="center" sx={{marginBottom: 4}}>
                                 <XDropdown options={rolesFixed} 
@@ -78,20 +83,11 @@ const UserForm = ({user, setUser, selectedRoles, setSelectedRoles, selectedOrgs,
                                     </MenuItem>
                                     ))}
                                 </Select> */}
-                                <XDropdown options={orgFixed} 
-                                    isOptionEqualToValue={(option, value) => option.id === value.id}
-                                    onChange={(e, values) => setSelectedOrgs(values)}
-                                    multiple 
-                                    value={selectedOrgs}
-                                    label='Organizations'
-                                    labelOptions='name'
-                                    bgColor='100'
-                                    renderOption={(option) => option.name}/>
                             </Stack>
                         </StyledPageMarginContainer>
                     </XCard>
-                    <LoadingButton loading={loading} variant="outlined" type="submit">
-                        <span>{edit ? 'Edit User' : 'Create User'}</span>
+                    <LoadingButton disabled={isDisabled} loading={loading} variant="contained" type="submit">
+                        <span>{edit ? 'Edit Client' : 'Create Client'}</span>
                     </LoadingButton>
                     </StyledPageContainer>
                  )}
@@ -99,4 +95,4 @@ const UserForm = ({user, setUser, selectedRoles, setSelectedRoles, selectedOrgs,
     )
 }
 
-export default UserForm
+export default ClientForm

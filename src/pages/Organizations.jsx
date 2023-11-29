@@ -1,16 +1,18 @@
 import React, { useState, useEffect} from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare, faCoffee, faTrashCan, faPlus} from "@fortawesome/free-solid-svg-icons";
+import { faPenToSquare, faCoffee, faTrashCan, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { StyledGreenXButton, StyledRedXButton, } from '@ximdex/xui-react/material/XRow/StyledXRow.js';
 import { XSpinner, XRow, XRowDetails, XRowExtraDetails, XRowContent, XButton, XRadio, XInput} from '@ximdex/xui-react/material';
 import styled from 'styled-components';
 import { useAuth } from "../providers/AuthProvider/AuthContext";
 import { useSelector } from "react-redux";
 import userManagementApi from "../services/apiServices";
+import {useNavigate } from "react-router-dom";
 import { StyledActivitiesListContainer, StyledDivFlexBetween, StyledDivFlexStartWrap, StyledFilterXCard, StyledGrid, StyledSearchContainer } from "../styles/Containers";
 import { StyledFontAwesomeIcon } from "../styles/Icons";
 import { Chip } from "@mui/material";
 import Divider from '@mui/material/Divider';
+import { StyledLink } from "../styles/StyledLink";
 
 const CenteredSpinner = styled(XSpinner)`
         width: 100px;
@@ -27,22 +29,44 @@ export const StyledFullCenter = styled('div')`
 `;
 
 function Organizations() { 
-    const { isAuthenticated } = useAuth();
-    const [loading, isLoading] = useState(true);
-    const [data, setData] = useState(null);
-    const token = useSelector((state) => state.user.access_token);
+  const { isAuthenticated } = useAuth();
+  const [loading, isLoading] = useState(true);
+  const [data, setData] = useState(null);
+  const token = useSelector((state) => state.user.access_token);
+  const [infoRows, setInfoRows] = useState([]);
+  
+  const navigate = useNavigate();
 
+  const loadDetails = async (id, position) => {
+    await userManagementApi.get(`organization/${id}`, {bearerToken: token})
+    .then((response) => {
+        let copy = infoRows;
+        copy[position] = response.data.data.organization;
+        setInfoRows(copy)
+    })
+    .catch((error) => {
+        console.log(error)
+    })
+
+    console.log(infoRows)
+  }
+  
+  useEffect(() => {
+    console.log(infoRows)
+  },[infoRows]);
+    
+    
     const options = [
         { value: 'value1', label: 'label1', icon: <FontAwesomeIcon icon={faCoffee} />},
         { value: 'value2', label: 'label2', icon: <FontAwesomeIcon icon={faCoffee} />},
     ];
 
-    const getUsers = async () => {
+    const getOrganizations = async () => {
         async function fecthData() {
-          await userManagementApi.get('user', {bearerToken: token})
+          await userManagementApi.get('organization', {bearerToken: token})
           .then((response) => {
               console.log(response)
-              setData(response.data.data.user);
+              setData(response.data.data.organizations);
               isLoading(false);
           })
           .catch((error) => {
@@ -55,40 +79,21 @@ function Organizations() {
         fecthData();
     }
 
+    const handleDelete = async (id) => {
+      await userManagementApi.delete(`organization/${id}`, {bearerToken: token})
+      .then((response) => {
+          console.log(response)
+          getOrganizations();
+      })
+      .catch((error) => {
+          console.log(error)
+      })
+    }
+
     useEffect(() => {
-        getUsers();
+        getOrganizations();
       },[]);
 
-
-    /*
-{
-    "id": 3,
-    "name": "Geo Beahan",
-    "email": "amaya.oberbrunner@example.org",
-    "email_verified_at": "2023-10-19T10:31:22.000000Z",
-    "created_at": "2023-10-19T10:31:22.000000Z",
-    "updated_at": "2023-10-19T10:31:22.000000Z",
-    "surname": "Fadel",
-    "birth_date": "1993-10-09",
-    "roles": [
-      {
-        "id": 1,
-        "name": "Admin",
-        "created_at": "2023-10-19T10:31:22.000000Z",
-        "updated_at": "2023-10-19T10:31:22.000000Z"
-      }
-    ],
-    "organizations": [
-      {
-        "id": 1,
-        "name": "XIMDEX",
-        "description": "Modificado",
-        "created_at": "2023-10-20T11:39:39.000000Z",
-        "updated_at": "2023-10-20T11:48:52.000000Z"
-      }
-    ]
-}
-*/
     return (
       <StyledFullCenter>
         <StyledGrid>
@@ -131,35 +136,34 @@ function Organizations() {
               />
             </StyledDivFlexStartWrap>
             <StyledDivFlexBetween>
-              <Chip label={`${data ? data.length : "0"} users`} />
-              <XButton>
-                <StyledFontAwesomeIcon
-                  icon={faPlus}
-                  title="Create a new user."
-                  size="1x"
-                  hasMarginRight={true}
-                />
-                New user
-              </XButton>
+              <Chip label={`${data ? data.length : "0"} organizations`} />
+              <StyledLink to={'/createOrganization'}>
+                <XButton>
+                  <StyledFontAwesomeIcon
+                    icon={faPlus}
+                    title="Create a new organization"
+                    size="1x"
+                    hasMarginRight={true}
+                  />
+                  New organization
+                </XButton>
+              </StyledLink>
             </StyledDivFlexBetween>
             {loading ? (
               <CenteredSpinner />
             ) : (
               <>
-                {data.map((element, index) => (
+                {data ? data.map((element, index) => (
                   <XRow
                     name={`${element.name}${element.id}`}
                     key={index}
                     identifier={element.id}
                     isCollapsable={true}
+                    functionButtonCollapsable={() => loadDetails(element.id, index)}
                     labelButtonCollapsable={
                       <>
                         <p style={{ marginRight: "1em" }}>
-                          {element.roles.length} roles
-                        </p>
-                        <Divider />
-                        <p style={{ marginRight: "1em" }}>
-                          {element.organizations.length} organizations
+                          Details
                         </p>
                       </>
                     }
@@ -168,12 +172,12 @@ function Organizations() {
                         component: (
                           <StyledGreenXButton
                             key={"card_control" + index}
-                            onClick={() => console.log("EDITAR", index)}
+                            onClick={() => navigate(`/editOrganization?id=${element.id}`)}
                           >
                             <FontAwesomeIcon
                               icon={faPenToSquare}
                               size="1x"
-                              title="Edit assesment"
+                              title="Edit organization"
                             />
                           </StyledGreenXButton>
                         ),
@@ -182,7 +186,7 @@ function Organizations() {
                         component: (
                           <StyledRedXButton
                             key={"card_control" + index}
-                            onClick={() => console.log("ELIMINAR", index)}
+                            onClick={() => handleDelete(element.id)}
                           >
                             <FontAwesomeIcon
                               icon={faTrashCan}
@@ -196,118 +200,18 @@ function Organizations() {
                   >
                     <XRowContent key="XRowContent">
                       <p style={{ marginRight: "1em" }}>
-                        Name: {element.name} ID: {element.id}
+                        Orgnanization: {element.name}
                       </p>
                       <p style={{ marginRight: "1em" }}>
-                        Surname: {element.surname} Email: {element.email}
-                      </p>
-                      <p style={{ marginRight: "1em" }}>
-                        Email: {element.email}
+                        ID: {element.id}
                       </p>
                     </XRowContent>
                     {/* <div className='detail-rows-container'> */}
-                    {element.roles && element.roles.length > 0 ? (
-                      <React.Fragment key={"XRowDetails"}>
-                        {element.roles.map((role, roleIndex) => (
-                          <XRowDetails
-                            key={"XRowDetails" + roleIndex}
-                            controlsDetails={[
-                              {
-                                component: (
-                                  <StyledGreenXButton
-                                    onClick={() =>
-                                      console.log("EDITAR DETAILS", roleIndex)
-                                    }
-                                  >
-                                    <FontAwesomeIcon
-                                      icon={faPenToSquare}
-                                      size="xs"
-                                      title="Edit"
-                                    />
-                                  </StyledGreenXButton>
-                                ),
-                              },
-                              {
-                                component: (
-                                  <StyledGreenXButton
-                                    onClick={() =>
-                                      console.log("EDITAR DETAILS", roleIndex)
-                                    }
-                                  >
-                                    <FontAwesomeIcon
-                                      icon={faPenToSquare}
-                                      size="xs"
-                                      title="Edit"
-                                    />
-                                  </StyledGreenXButton>
-                                ),
-                              },
-                            ]}
-                          >
-                            <p style={{ marginRight: "1em" }}>{role.name}</p>
-                          </XRowDetails>
-                        ))}
-                      </React.Fragment>
-                    ) : (
-                      <XRowDetails key={"XRowDetails"}></XRowDetails>
-                    )}
-                    {element.organizations &&
-                    element.organizations.length > 0 ? (
-                      <React.Fragment key={"XRowDetails"}>
-                        {element.organizations.map(
-                          (organizations, organizationsIndex) => (
-                            <XRowDetails
-                              key={"XRowDetails" + organizationsIndex}
-                              controlsDetails={[
-                                {
-                                  component: (
-                                    <StyledGreenXButton
-                                      onClick={() =>
-                                        console.log(
-                                          "EDITAR DETAILS",
-                                          organizationsIndex
-                                        )
-                                      }
-                                    >
-                                      <FontAwesomeIcon
-                                        icon={faPenToSquare}
-                                        size="xs"
-                                        title="Edit"
-                                      />
-                                    </StyledGreenXButton>
-                                  ),
-                                },
-                                {
-                                  component: (
-                                    <StyledGreenXButton
-                                      onClick={() =>
-                                        console.log(
-                                          "EDITAR DETAILS",
-                                          organizationsIndex
-                                        )
-                                      }
-                                    >
-                                      <FontAwesomeIcon
-                                        icon={faPenToSquare}
-                                        size="xs"
-                                        title="Edit"
-                                      />
-                                    </StyledGreenXButton>
-                                  ),
-                                },
-                              ]}
-                            >
-                              <p style={{ marginRight: "1em" }}>
-                                {organizations.name}
-                              </p>
-                            </XRowDetails>
-                          )
-                        )}
-                      </React.Fragment>
-                    ) : (
-                      <XRowDetails key={"XRowDetails"}></XRowDetails>
-                    )}
-
+                    <XRowDetails key="XRowDetails">
+                      <>
+                        {infoRows[index] !== undefined ? (<p>Algo</p>):(<p>Loading...</p>)}
+                      </>
+                    </XRowDetails>
                     <XRowExtraDetails
                       key={"XRowExtraDetails"}
                       extraDetails={[
@@ -324,7 +228,9 @@ function Organizations() {
                       ]}
                     ></XRowExtraDetails>
                   </XRow>
-                ))}
+                )) 
+                : 
+                <p>Error</p>}
               </>
             )}
           </StyledActivitiesListContainer>

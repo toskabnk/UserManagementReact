@@ -41,8 +41,7 @@ function LoginPage() {
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    
-    console.log(isAuthenticated)
+
     //Comprueba si accedes a la pagina de login cuando estas autenticado
     useEffect(() => {
         console.log(`Authentica useEffect ${isAuthenticated}`)
@@ -79,15 +78,20 @@ function LoginPage() {
             if(response.data.success === true){
                 //Mostramos el tick de confirmacion
                 setIsSuccess(true);
-
+                console.log(response.data.data);
                 //Cambiamos el estado del AuthProvider a autenticado
                 login();
 
                 //Guardamos algunas variables en el localStorage
                 let token = response.data.data.token;
-                let name = response.data.data.user.name;
+                let name;
+                if(response.data.data.user.client === null){
+                    name = response.data.data.user.member.name;
+                } else {
+                    name = response.data.data.user.client.name;
+                }
                 let id = response.data.data.user.id;
-                let roles = response.data.data.user.roles;
+                let roles = response.data.data.roles;
 
                 let state = {
                     name: name,
@@ -113,7 +117,6 @@ function LoginPage() {
             //Volvemos a mostrar el boton de login
             setIsSuccess(false);
             setIsLoading(false);
-
             //Guardamos los datos de la respuesta
             const responseData = error.response.data;
 
@@ -122,7 +125,6 @@ function LoginPage() {
                 //Guardamos los errores
                 const validationErrors = responseData.data.errors;
                 setErrors(validationErrors);
-                
             //Si los errores estan vacios
             } else {
                 //Mostramos el mensaje

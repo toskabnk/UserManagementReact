@@ -120,7 +120,7 @@ function Register() {
                                     </StyledSVG>
                                 </StyledDivSVG>
                                 : <LoadingSpinner />) 
-                            : <XButton type="submit" size='small'>Register</XButton>}
+                            : <XButton onClick={register} size='small'>Register</XButton>}
                     </StyledForm>
             </StyledSectionBorder>
             <ErrorsModal

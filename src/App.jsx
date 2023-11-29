@@ -8,15 +8,16 @@ export const StyledFlexFullCenter = styled('div')`
   flex-direction: column;
   align-items: center;
   width: 100%;
+  min-height: 100vh;
   height: ${props => (props.height ? props.height : '100vh;')};;
   background-color: #eeeeee;
 `
 function App() {
   return (
-    <StyledFlexFullCenter>
+    <StyledFlexFullCenter height='100%'>
       <Navbar/>
       <Routes/> 
-  </StyledFlexFullCenter>
+    </StyledFlexFullCenter>
   )
 }
 

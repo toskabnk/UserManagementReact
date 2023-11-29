@@ -3,7 +3,7 @@ import React from 'react';
 import styled, {css, keyframes} from 'styled-components';
 
 
-export const spinner = keyframes`
+const spinner = keyframes`
     0% {
       transform: rotate(0deg);
     }

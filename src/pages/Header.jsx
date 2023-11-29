@@ -4,11 +4,11 @@ import { useSelector } from 'react-redux';
 
 export function Navbar() {  
 
-    const { isAuthenticated, isAdmin, logout } = useAuth();
+    const { isAuthenticated, isAdmin, isSuperAdmin, logout } = useAuth();
     const access_token = useSelector((state) => state.user.access_token)
     const name = useSelector((state) => state.user.name)
     
-    console.log(access_token);
+    console.log(isAuthenticated);
 
     return(
             <styled.NavBar>
@@ -19,11 +19,16 @@ export function Navbar() {
                     </styled.NavBarItems>
                     {isAuthenticated ? (
                     <>
-                        {isAdmin ? (
+                        {isAdmin || isSuperAdmin ? (
                             <>
                                 <styled.NavBarItems>
                                     <styled.NavBarLink to='/users'>Users</styled.NavBarLink>
                                 </styled.NavBarItems>
+                                {isSuperAdmin ? (
+                                    <styled.NavBarItems>
+                                    <styled.NavBarLink to='/clients'>Clients</styled.NavBarLink>
+                                </styled.NavBarItems>
+                                ) : (null)}
                                 <styled.NavBarItems>
                                     <styled.NavBarLink to='/roles'>Roles</styled.NavBarLink>
                                 </styled.NavBarItems>

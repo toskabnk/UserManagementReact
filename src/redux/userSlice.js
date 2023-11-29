@@ -4,7 +4,8 @@ const initialState = JSON.parse(localStorage.getItem('state')) || {
     name: null,
     access_token: null,
     id: null,
-    roles: null
+    roles: null,
+    isAuthenticated: false
 };
 
 export const userSlice = createSlice({
@@ -17,6 +18,7 @@ export const userSlice = createSlice({
             state.access_token = access_token;
             state.id = id;
             state.roles = roles;
+            state.isAuthenticated = true;
             localStorage.setItem('state', JSON.stringify(state));
         },
 
@@ -25,7 +27,8 @@ export const userSlice = createSlice({
             state.access_token = null;
             state.id = null;
             state.roles = null;
-            localStorage.removeItem('state');
+            state.isAuthenticated = false;
+            localStorage.setItem('state');
         }
 
     }

@@ -94,6 +94,11 @@ export const StyledDivCenterY = styled.div`
     align-items: center;
 `
 
+export const StyledUserId = styled.p`
+    margin: 1rem;
+    width: max-content;
+`;
+
 export const StyledButtonCenterContainer = styled.div`
     display: flex;
     justify-content: center;

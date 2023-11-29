@@ -2,26 +2,20 @@ import {useEffect, useState} from 'react';
 import { StyledFullCenter } from "../styles/Containers";
 import userManagementApi from '../services/apiServices';
 import { useSelector } from 'react-redux';
-import User from '../models/User';
 import { XPopUp } from '@ximdex/xui-react/material';
 import UserForm from '../components/UserForm';
-import { useSearchParams } from 'react-router-dom';
 import ErrorsModal from '../components/ErrorsModal';
 
-const EditUser = () => {
-    let [searchParams] = useSearchParams();
-    const id = searchParams.get("id");
+
+function CreateMember() {
     const token = useSelector((state) => state.user.access_token);
-    const [rolesFixed, setRolesFixed] = useState([]);
     const [errors, setErrors] = useState(null);
     const [openModal,setOpenModal] = useState(false);
+    const [rolesFixed, setRolesFixed] = useState([]);
     const [orgFixed, setOrgFixed] = useState([]);
     const [loading, setLoading] = useState(false)
-    const [dataLoading, isDataLoading] = useState(true)
     const [selectedOrgs, setSelectedOrgs] = useState([]);
     const [selectedRoles, setSelectedRoles] = useState([]);
-    const [roles, setRoles] = useState([]);
-    const [orgs, setOrgs] = useState([]);
     const [user, setUser] = useState({
         name: "",
         surname: "",
@@ -32,14 +26,14 @@ const EditUser = () => {
         roles: [],
         organizations: []
     })
-    const {name, surname, birthDate, email, password, password2} = user;
+    const {name, surname, birthDate, email, password, password2, roles, organizations} = user;
 
     const getRoles = async() => {
         await userManagementApi
         .get("role", { bearerToken: token })
         .then((response) => {
-            console.log(`Role response: ${response}`)
-            setRolesFixed(response.data.data.role)
+            console.log(response)
+            setRolesFixed(response.data.data.roles)
         })
         .catch((error) => {
             console.log(error);
@@ -50,53 +44,36 @@ const EditUser = () => {
         await userManagementApi
         .get("organization", { bearerToken: token })
         .then((response) => {
-            console.log(`Organizations response: ${response}`)
-            setOrgFixed(response.data.data.organization)
-        })
-        .catch((error) => {
-            console.log(error);
-        })
-    }
-
-    const getUser = async(id) => {
-        isDataLoading(true);
-        await userManagementApi
-        .get(`user/${id}`, { bearerToken: token })
-        .then((response) => {
             console.log(response)
-            setUser(new User(response.data.data.user))
-            setSelectedOrgs(response.data.data.user.organizations)
-            setSelectedRoles(response.data.data.user.roles)
+            setOrgFixed(response.data.data.organizations)
         })
         .catch((error) => {
             console.log(error);
-        })
-        .finally(() => {
-            isDataLoading(false);
         })
     }
 
     useEffect(() => {
       getRoles();
       getOrganizations();
-      getUser(id);
     }, [])
 
     useEffect(() => {
         const selectedRolesIds = selectedRoles.map(role => role.id);
         const selectedOrgIds = selectedOrgs.map(org => org.id);
-        setRoles(selectedRolesIds);
-        setOrgs(selectedOrgIds);
+        user.roles = selectedRolesIds;
+        user.organizations = selectedOrgIds;
+        console.log(user)
     }, [selectedOrgs, selectedRoles])
 
     function handleSubmit(event) {
         event.preventDefault();
         postData();
+        
     }
 
     const postData = async() => {
         setLoading(true);
-        const userDTO = {
+        const body = {
             name: name,
             surname: surname,
             birth_date: birthDate,
@@ -104,15 +81,10 @@ const EditUser = () => {
             password: password,
             password_confirmation: password2,
             roles: roles,
-            organizations: orgs
+            organizations: organizations
         };
-        console.log(userDTO)    
-        let user = new User(userDTO);
-        const body = user.toDTO();
-        console.log(body)
-        setLoading(false);
         await userManagementApi
-        .put(`user/admin/${id}`, body, { bearerToken: token })
+        .post("member", body, { bearerToken: token })
         .then((response) => {
             console.log(`Data response: ${response}`)
             XPopUp({
@@ -123,10 +95,22 @@ const EditUser = () => {
                 iconColor: "ligthgreen",
             });
             setLoading(false);
+            setUser({
+                name: "",
+                surname: "",
+                birthdate: "",
+                email: "",
+                password:"",
+                password2: "",
+                roles: [],
+                organizations: []
+            });
+            setSelectedOrgs([]);
+            setSelectedRoles([]);
         })
         .catch((error) => {
             console.log(error);
-            const responseData = error.response.data;
+            setLoading(false);
             XPopUp({
                 message: `Error creating the user`,
                 iconType: "error",
@@ -134,11 +118,13 @@ const EditUser = () => {
                 popUpPosition: "top",
                 iconColor: "red",
             });
+            const responseData = error.response.data;
             if (responseData.data && responseData.data.errors) {
                 const validationErrors = responseData.data.errors;
                 setErrors(validationErrors);
                 setOpenModal(true);
             }
+            setLoading(false);
             setLoading(false);
         })
     }
@@ -154,10 +140,8 @@ const EditUser = () => {
             setSelectedOrgs={setSelectedOrgs} 
             rolesFixed={rolesFixed}
             orgFixed={orgFixed}
-            loading={loading}
-            dataLoading={dataLoading}
+            loading={loading} 
             handleSubmit={handleSubmit}
-            edit={true}
             />
             <ErrorsModal
             openModal={openModal}
@@ -168,4 +152,4 @@ const EditUser = () => {
     )
 }
 
-export default EditUser;
+export default CreateMember;

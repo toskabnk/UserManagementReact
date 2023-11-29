@@ -8,6 +8,7 @@ import { deleteUser } from "../../redux/userSlice"
 const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [logoutError, setLogoutError] = useState(null);
 
   const navigate = useNavigate();
@@ -19,10 +20,12 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     if(token) {
       setIsAuthenticated(true);
+      setIsSuperAdmin(roles.some(role => role.name === "SuperAdmin"));
       setIsAdmin(roles.some(role => role.name === "Admin"));
     } else {
       setIsAuthenticated(false);
       setIsAdmin(false);
+      setIsSuperAdmin(false);
     }
   })
 
@@ -46,7 +49,7 @@ const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isAdmin, logoutError, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isAdmin, isSuperAdmin, logoutError, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

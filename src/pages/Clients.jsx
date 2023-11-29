@@ -14,7 +14,7 @@ import Divider from '@mui/material/Divider';
 import { useNavigate } from "react-router-dom";
 import { CenteredSpinner } from "../styles/Spinner";
 
-function Users() { 
+function Clients() { 
   const { isAuthenticated } = useAuth();
   const [loading, isLoading] = useState(true);
   const [data, setData] = useState(null);
@@ -26,14 +26,14 @@ function Users() {
       { value: 'value2', label: 'label2', icon: <FontAwesomeIcon icon={faCoffee} />},
   ];
 
-  const handleDeleteUser = (id) => {
-    if(window.confirm(`Are you sure you want to delete the user with id ${id}?`)){
-      userManagementApi.delete(`user/${id}`, {bearerToken: token})
+  const handleDeleteClient = (id) => {
+    if(window.confirm(`Are you sure you want to delete the client with id ${id}?`)){
+      userManagementApi.delete(`client/${id}`, {bearerToken: token})
         .then((response) => {
           console.log(response)
-          getUsers();
+          getClients();
           XPopUp({
-            message: `User deleted`,
+            message: `Client deleted`,
             iconType: "success",
             timer: "3000",
             popUpPosition: "top",
@@ -42,7 +42,7 @@ function Users() {
         }).catch((error) => {
           console.log(error)
           XPopUp({
-            message:`Error deleting user`,
+            message:`Error deleting client`,
             iconType:'error',
             timer:'3000',
             popUpPosition:'top',
@@ -52,16 +52,16 @@ function Users() {
     }
   }
 
-  const handleEditUser = (user) => {
-    navigate(`/editMember?id=${user.id}`)
+  const handleEditClient = (client) => {
+    navigate(`/editClient?id=${client.id}`)
   }
 
-  const handleRemoveRole = (user, role) => {
-    if(window.confirm(`Are you sure you want to remove the role ${role.name} from the ${user.name}?`)){
-      userManagementApi.delete(`member/${user.id}/role/${role.id}`, {bearerToken: token})
+  const handleRemoveRole = (client, role) => {
+    if(window.confirm(`Are you sure you want to remove the role ${role.name} from the ${client.name}?`)){
+      userManagementApi.delete(`client/${client.id}/role/${role.id}`, {bearerToken: token})
       .then((response) => {
         console.log(response)
-        getUsers();
+        getClients();
         XPopUp({
           message: `Role removed`,
           iconType: "success",
@@ -72,7 +72,7 @@ function Users() {
       }).catch((error) => {
         console.log(error)
         XPopUp({
-          message:`Error removing role from the user`,
+          message:`Error removing role from the client`,
           iconType:'error',
           timer:'3000',
           popUpPosition:'top',
@@ -86,12 +86,12 @@ function Users() {
     navigate(`/editRole?id=${role.id}`)
   }
 
-  const handleRemoveOrganization = (user, organization) => {
-    if(window.confirm(`Are you sure you want to remove the organization ${organization.name} from the ${user.name}?`)){
-      userManagementApi.delete(`member/${user.id}/organization/${organization.id}`, {bearerToken: token})
+  const handleRemoveOrganization = (client, organization) => {
+    if(window.confirm(`Are you sure you want to remove the organization ${organization.name} from the ${client.name}?`)){
+      userManagementApi.delete(`client/${client.id}/organization/${organization.id}`, {bearerToken: token})
       .then((response) => {
         console.log(response)
-        getUsers();
+        getClients();
         XPopUp({
           message: `Organization removed`,
           iconType: "success",
@@ -102,7 +102,7 @@ function Users() {
       }).catch((error) => {
         console.log(error)
         XPopUp({
-          message:`Error removing organization from the user`,
+          message:`Error removing organization from the client`,
           iconType:'error',
           timer:'3000',
           popUpPosition:'top',
@@ -116,15 +116,14 @@ function Users() {
     navigate(`/editOrganization?id=${organization.id}`)
   }
 
-
-  const getUsers = async () => {
+  const getClients = async () => {
     async function fecthData() {
       isLoading(true);
       await userManagementApi
-        .get("member", { bearerToken: token })
+        .get("client", { bearerToken: token })
         .then((response) => {
           console.log(response);
-          setData(response.data.data.members);
+          setData(response.data.data.clients);
         })
         .catch((error) => {
           console.log(error);
@@ -137,8 +136,8 @@ function Users() {
   }
 
   useEffect(() => {
-      getUsers();
-      console.log(`User isAuthenticaded ${isAuthenticated}`)
+    getClients();
+    console.log(`User isAuthenticaded ${isAuthenticated}`)
   },[]);
   
   /*
@@ -214,16 +213,16 @@ function Users() {
             />
           </StyledDivFlexStartWrap>
           <StyledDivFlexBetween>
-            <Chip label={`${data ? data.length : "0"} users`} />
-            <StyledLink to={'/createMember'}>
+            <Chip label={`${data ? data.length : "0"} clients`} />
+            <StyledLink to={'/createClient'}>
               <XButton>
                 <StyledFontAwesomeIcon
                   icon={faPlus}
-                  title="Create a new user."
+                  title="Create a new client."
                   size="1x"
                   hasMarginRight={true}
                 />
-                New user
+                New client
               </XButton>
             </StyledLink>
           </StyledDivFlexBetween>
@@ -237,7 +236,6 @@ function Users() {
                   key={index}
                   identifier={element.id}
                   isCollapsable={true}
-                  functionButtonCollapsable={() => {console.log('test')}}
                   labelButtonCollapsable={
                     <>
                       <p style={{ marginRight: "1em" }}>
@@ -254,12 +252,12 @@ function Users() {
                       component: (
                         <StyledGreenXButton
                           key={"card_control" + index}
-                          onClick={() => handleEditUser(element)}
+                          onClick={() => handleEditClient(element)}
                         >
                           <FontAwesomeIcon
                             icon={faPenToSquare}
                             size="1x"
-                            title="Edit user"
+                            title="Edit client"
                           />
                         </StyledGreenXButton>
                       ),
@@ -268,12 +266,12 @@ function Users() {
                       component: (
                         <StyledRedXButton
                           key={"card_control" + index}
-                          onClick={() => handleDeleteUser(element.id)}
+                          onClick={() => handleDeleteClient(element.id)}
                         >
                           <FontAwesomeIcon
                             icon={faTrashCan}
                             size="1x"
-                            title="Remove user"
+                            title="Remove client"
                           />
                         </StyledRedXButton>
                       ),
@@ -283,9 +281,6 @@ function Users() {
                   <XRowContent key="XRowContent">
                     <p style={{ marginRight: "1em" }}>
                       Name: {element.name} ID: {element.id}
-                    </p>
-                    <p style={{ marginRight: "1em" }}>
-                      Surname: {element.surname}
                     </p>
                     <p style={{ marginRight: "1em" }}>
                       Email: {element.user.email}
@@ -414,4 +409,4 @@ function Users() {
   ); 
 }
 
-export default Users;
+export default Clients;
