@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { XInput, XButton } from '@ximdex/xui-react/material';
-import {useNavigate } from "react-router-dom";
-import User from '../models/User';
+import {useNavigate, useSearchParams } from "react-router-dom";
 import userManagementApi from '../services/apiServices';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { StyledSectionBorder } from '../styles/SectionStyles';
@@ -9,35 +8,45 @@ import { StyledForm, StyledDivSVG, StyledSVG } from '../styles/FormStyles';
 import { StyledFlexFullCenter } from '../App';
 import ErrorsModal from '../components/ErrorsModal';
 import { StyledP } from '../styles/ErrorMessagesStyles';
+import { Alert } from '@mui/material';
 
 
 function Register() { 
+    let [searchParams] = useSearchParams();
+    const client = searchParams.get("client");
+    
     const [error, setError] = useState('');
     const [response, setResponse] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [openModal,setOpenModal] = useState(false);
     const [errors, setErrors] = useState(null);
+    const [clientName, setClientName] = useState(null);
     const [user, setUser] = useState({
         name: "",
         surname: "",
-        birthdate: "",
+        birth_date: "",
         email: "",
         password:"",
-        password2: ""
+        password_confirmation: "",
+        idClient: null,
+
     })
-    const {name, surname, birthdate, email, password, password2} = user;
     
+    const navigate = useNavigate();
+
+    const {name, surname, birth_date, email, password, password_confirmation} = user;
+    
+    //Comprueba que las contraseñas coinciden
     useEffect(() => {
-        if(password !== password2){
+        if(password !== password_confirmation){
             setError('Passwords dont match');
         } else {
             setError('');
         }
-    },[password2, password])
+    },[password_confirmation, password])
 
-    const navigate = useNavigate();
-
+    //Actualiza el objeto user con los datos del formulario
     const onInputChange = (e) => {
         setUser({
             ...user,
@@ -45,35 +54,30 @@ function Register() {
         });
     }
 
+    //Envia el formulario
     function handleSubmit(event){
         event.preventDefault();
         register();
     }
 
+    //Envia los datos al servidor
     const register = async() => {
         setIsLoading(true);
-        const userDTO = {
-            name: name,
-            surname: surname,
-            birth_date: birthdate,
-            email: email,
-            password: password,
-            password_confirmation: password2,
-        };
-            
-        let user = new User(userDTO);
-        const body = user.toDTO();
+
+        let copyUser = user;
         
-        
-        await userManagementApi.post('register', body)
+        //Elimina los campos vacios del objeto user
+        Object.keys(copyUser).forEach(key => copyUser[key] == null && delete copyUser[key]);
+
+        console.log(copyUser)
+
+        await userManagementApi.post('register', copyUser)
         .then(function(response) {
-            console.log(response)
             if(response.data.success === true){
                 setIsSuccess(true);
                 setTimeout(() => {
                     navigate('/login');
-                }, 3000); // 3000 milisegundos (3 segundos)
-
+                }, 800);
             }
         })
         .catch(function (error) {
@@ -87,28 +91,47 @@ function Register() {
                 setUser({
                     ...user,
                     password: '',
-                    password2: '',
+                    password_confirmation: '',
                 });
                 setOpenModal(true);
             }
         });
     }
+
+    //Obtiene el dato del cliente
+    async function getClient () {
+        if(client === null) return;
+        await userManagementApi.get(`register/${client}`)
+        .then(function(response) {
+            console.log(response)
+            if(response.data.success === true){
+                setUser({
+                    ...user,
+                    idClient: client,
+                });
+                setClientName(response.data.data.client_name);
+            }
+        })
+        //Si el cliente no existe, no hace nada
+    }
     
+    //Obtiene el dato del cliente al cargar la pagina
     useEffect(() => {
-        console.log(response);
-    },[response])
+        getClient();
+    },[client])
 
     return (
         <StyledFlexFullCenter height={"100vh"}>
             <StyledSectionBorder>
                     <StyledP>Enter your information:</StyledP>
                     <StyledForm onSubmit={handleSubmit}>
+                        {clientName ? <Alert icon={false} severity="info">Register for client: {clientName}</Alert> : null}
                         <XInput id='name' type='text' label='Name' required={true} size='small' fullWidth value={name} onChange={(e) => onInputChange(e)} />
                         <XInput id='surname' type='text' label='Surname' required size='small' fullWidth value={surname} onChange={(e) => onInputChange(e)} />
-                        <XInput id='birthdate' type='date' label='Birth Date' required size='small' fullWidth value={birthdate} onChange={(e) => onInputChange(e)} />
+                        <XInput id='birth_date' type='date' label='Birth Date' required size='small' fullWidth value={birth_date} onChange={(e) => onInputChange(e)} />
                         <XInput id='email' type='text' label='Email' required size='small' fullWidth value={email} onChange={(e) => onInputChange(e)} />
                         <XInput id='password' type='password' label='Password' required size='small' fullWidth value={password} onChange={(e) => onInputChange(e)} />
-                        <XInput id='password2' type='password' label='Repeat Password' required size='small' fullWidth value={password2} onChange={(e) => onInputChange(e)} />
+                        <XInput id='password_confirmation' type='password' label='Repeat Password' required size='small' fullWidth value={password_confirmation} onChange={(e) => onInputChange(e)} />
                         {error && <p style={{ color: 'red' }}>{error}</p>}
                         {isLoading ? 
                             (isSuccess ? 

@@ -1,9 +1,8 @@
 import React, { useState, useEffect} from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare, faCoffee, faTrashCan, faPlus} from "@fortawesome/free-solid-svg-icons";
+import { faPenToSquare, faTrashCan, faPlus, faParagraph, faAt } from "@fortawesome/free-solid-svg-icons";
 import { StyledGreenXButton, StyledRedXButton, } from '@ximdex/xui-react/material/XRow/StyledXRow.js';
 import { XRow, XRowDetails, XRowExtraDetails, XRowContent, XButton, XRadio, XInput, XPopUp} from '@ximdex/xui-react/material';
-import { useAuth } from "../providers/AuthProvider/AuthContext";
 import { useSelector } from "react-redux";
 import userManagementApi from "../services/apiServices";
 import { StyledActivitiesListContainer, StyledDivFlexBetween, StyledDivFlexStartWrap, StyledFilterXCard, StyledFullCenter, StyledGrid, StyledSearchContainer } from "../styles/Containers";
@@ -13,120 +12,162 @@ import { Chip } from "@mui/material";
 import Divider from '@mui/material/Divider';
 import { useNavigate } from "react-router-dom";
 import { CenteredSpinner } from "../styles/Spinner";
+import Swal from "sweetalert2";
 
 function Clients() { 
-  const { isAuthenticated } = useAuth();
+  const token = useSelector((state) => state.user.access_token);
   const [loading, isLoading] = useState(true);
   const [data, setData] = useState(null);
-  const token = useSelector((state) => state.user.access_token);
+  const [searchValue, setSearchValue] = useState(""); //Valor del input de busqueda
+  const [radioValue, setRadioValue] = useState("name"); //Valor inicial del filtro de busqueda
+  
   const navigate = useNavigate();
 
+  //Opciones para el filtro de busqueda
   const options = [
-      { value: 'value1', label: 'label1', icon: <FontAwesomeIcon icon={faCoffee} />},
-      { value: 'value2', label: 'label2', icon: <FontAwesomeIcon icon={faCoffee} />},
+      { value: 'name', label: 'Name', icon: <FontAwesomeIcon icon={faParagraph} />},
+      { value: 'email', label: 'Email', icon: <FontAwesomeIcon icon={faAt} />},
   ];
 
-  const handleDeleteClient = (id) => {
-    if(window.confirm(`Are you sure you want to delete the client with id ${id}?`)){
-      userManagementApi.delete(`client/${id}`, {bearerToken: token})
+  //Elimina un cliente mostrando un mensaje para confirmar la accion
+  const handleDeleteClient = (element) => {
+    Swal.fire({
+      title: 'Delete client',
+      text: `Are you sure you want to delete the client ${element.name}?`,
+      showDenyButton: true,
+      showCancelButton: false,
+      confirmButtonText: `Remove`,
+      denyButtonText: `Cancel`,
+      confirmButtonColor: "#d33",
+      denyButtonColor: "#43a1a2",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        userManagementApi.delete(`client/${element.id}`, {bearerToken: token})
+          .then((response) => {
+            getClients();
+            XPopUp({
+              message: `Client deleted`,
+              iconType: "success",
+              timer: "3000",
+              popUpPosition: "top",
+              iconColor: "ligthgreen",
+            });
+          }).catch((error) => {
+            XPopUp({
+              message:`Error deleting client`,
+              iconType:'error',
+              timer:'3000',
+              popUpPosition:'top',
+              iconColor: 'red',
+            })
+        })
+      }
+    })
+  }
+
+  //Redirige a la página de edición de un cliente
+  const handleEditClient = (client) => {
+    navigate(`/editClient?id=${client.id}`)
+  }
+
+  //Elimina un rol de un cliente mostrando un mensaje para confirmar la accion
+  const handleRemoveRole = (client, role) => {
+    Swal.fire({
+      title: 'Remove role',
+      text: `Are you sure you want to remove the role ${role.name} from the ${client.name}?`,
+      showDenyButton: true,
+      showCancelButton: false,
+      confirmButtonText: `Remove`,
+      denyButtonText: `Cancel`,
+      confirmButtonColor: "#d33",
+      denyButtonColor: "#43a1a2",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        userManagementApi.delete(`client/${client.id}/role/${role.id}`, {bearerToken: token})
         .then((response) => {
-          console.log(response)
           getClients();
           XPopUp({
-            message: `Client deleted`,
+            message: `Role removed`,
             iconType: "success",
             timer: "3000",
             popUpPosition: "top",
             iconColor: "ligthgreen",
           });
         }).catch((error) => {
-          console.log(error)
           XPopUp({
-            message:`Error deleting client`,
+            message:`Error removing role from the client`,
             iconType:'error',
             timer:'3000',
             popUpPosition:'top',
             iconColor: 'red',
           })
-      })
-    }
-  }
-
-  const handleEditClient = (client) => {
-    navigate(`/editClient?id=${client.id}`)
-  }
-
-  const handleRemoveRole = (client, role) => {
-    if(window.confirm(`Are you sure you want to remove the role ${role.name} from the ${client.name}?`)){
-      userManagementApi.delete(`client/${client.id}/role/${role.id}`, {bearerToken: token})
-      .then((response) => {
-        console.log(response)
-        getClients();
-        XPopUp({
-          message: `Role removed`,
-          iconType: "success",
-          timer: "3000",
-          popUpPosition: "top",
-          iconColor: "ligthgreen",
-        });
-      }).catch((error) => {
-        console.log(error)
-        XPopUp({
-          message:`Error removing role from the client`,
-          iconType:'error',
-          timer:'3000',
-          popUpPosition:'top',
-          iconColor: 'red',
         })
-      })
-    }
+      }
+    })
   }
 
+  //Redirige a la página de edición de un rol
   const handleEditRole = (role) => {
     navigate(`/editRole?id=${role.id}`)
   }
 
+  //Elimina una organización de un cliente mostrando un mensaje para confirmar la accion
   const handleRemoveOrganization = (client, organization) => {
-    if(window.confirm(`Are you sure you want to remove the organization ${organization.name} from the ${client.name}?`)){
-      userManagementApi.delete(`client/${client.id}/organization/${organization.id}`, {bearerToken: token})
-      .then((response) => {
-        console.log(response)
-        getClients();
-        XPopUp({
-          message: `Organization removed`,
-          iconType: "success",
-          timer: "3000",
-          popUpPosition: "top",
-          iconColor: "ligthgreen",
-        });
-      }).catch((error) => {
-        console.log(error)
-        XPopUp({
-          message:`Error removing organization from the client`,
-          iconType:'error',
-          timer:'3000',
-          popUpPosition:'top',
-          iconColor: 'red',
+    Swal.fire({
+      title: 'Remove organization',
+      text: `Are you sure you want to remove the organization ${organization.name} from the ${client.name}?`,
+      showDenyButton: true,
+      showCancelButton: false,
+      confirmButtonText: `Remove`,
+      denyButtonText: `Cancel`,
+      confirmButtonColor: "#d33",
+      denyButtonColor: "#43a1a2",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        userManagementApi.delete(`client/${client.id}/organization/${organization.id}`, {bearerToken: token})
+        .then((response) => {
+          getClients();
+          XPopUp({
+            message: `Organization removed`,
+            iconType: "success",
+            timer: "3000",
+            popUpPosition: "top",
+            iconColor: "ligthgreen",
+          });
+        }).catch((error) => {
+          XPopUp({
+            message:`Error removing organization from the client`,
+            iconType:'error',
+            timer:'3000',
+            popUpPosition:'top',
+            iconColor: 'red',
+          })
         })
-      })
-    }
+      }
+    })
   }
 
+  //Redirige a la página de edición de una organización
   const handleEditOrganization = (organization) => {
     navigate(`/editOrganization?id=${organization.id}`)
   }
 
+  //Obtiene todos los clientes
   const getClients = async () => {
     async function fecthData() {
       isLoading(true);
-      await userManagementApi
-        .get("client", { bearerToken: token })
+      await userManagementApi.get("client", { bearerToken: token })
         .then((response) => {
-          console.log(response);
           setData(response.data.data.clients);
         })
         .catch((error) => {
-          console.log(error);
+          XPopUp({
+            message:`Error loading clients. Try again later.`,
+            iconType:'error',
+            timer:'3000',
+            popUpPosition:'top',
+            iconColor: 'red',
+          })
         })
         .finally(() => {
           isLoading(false);
@@ -135,41 +176,35 @@ function Clients() {
     fecthData();
   }
 
+  //Obtiene los clientes que coincidan con el filtro de busqueda
+  const search = async () => {
+    async function fecthData() {
+      isLoading(true);
+      await userManagementApi.get(`client?${radioValue}=${searchValue}`, { bearerToken: token })
+        .then((response) => {
+          console.log(response);
+          setData(response.data.data.clients);
+        })
+        .catch((error) => {
+          XPopUp({
+            message:`Error searching clients. Try again later.`,
+            iconType:'error',
+            timer:'3000',
+            popUpPosition:'top',
+            iconColor: 'red',
+          })
+        })
+        .finally(() => {
+          isLoading(false);
+        });
+    }
+    fecthData();
+  }
+
+  //Al cargar la pagina, obtiene todos los clientes
   useEffect(() => {
     getClients();
-    console.log(`User isAuthenticaded ${isAuthenticated}`)
   },[]);
-  
-  /*
-  Response example
-  {
-  "id": 3,
-  "name": "Geo Beahan",
-  "email": "amaya.oberbrunner@example.org",
-  "email_verified_at": "2023-10-19T10:31:22.000000Z",
-  "created_at": "2023-10-19T10:31:22.000000Z",
-  "updated_at": "2023-10-19T10:31:22.000000Z",
-  "surname": "Fadel",
-  "birth_date": "1993-10-09",
-  "roles": [
-    {
-      "id": 1,
-      "name": "Admin",
-      "created_at": "2023-10-19T10:31:22.000000Z",
-      "updated_at": "2023-10-19T10:31:22.000000Z"
-    }
-  ],
-  "organizations": [
-    {
-      "id": 1,
-      "name": "XIMDEX",
-      "description": "Modificado",
-      "created_at": "2023-10-20T11:39:39.000000Z",
-      "updated_at": "2023-10-20T11:48:52.000000Z"
-    }
-  ]
-}
-*/
 
   return (
     <StyledFullCenter>
@@ -178,13 +213,12 @@ function Clients() {
           <StyledFilterXCard
             isCollapsable={true}
             isCollapsed={false}
-            title="Status"
-          >
+            title="Search By">
             <XRadio
               direction="column"
-              value={"ALL"}
+              value={radioValue}
               onChange={(e) => {
-                console.log(e);
+                setRadioValue(e.target.value);
               }}
               options={options}
               paddingXSize="s"
@@ -195,12 +229,14 @@ function Clients() {
         <StyledActivitiesListContainer>
           <StyledDivFlexStartWrap>
             <XInput
-              value={""}
+              value={searchValue}
               onChange={(e) => {
-                console.log(e);
+                setSearchValue(e.target.value);
               }}
               onKeyDown={(e) => {
-                console.log(e);
+                if (e.key === "Enter") {
+                  search();
+                }
               }}
               type="search"
               size="small"
@@ -209,7 +245,7 @@ function Clients() {
                 margin: "0",
                 background: "#FBFBFB",
               }}
-              placeholder="Test search"
+              placeholder={`Search by ${radioValue}`}
             />
           </StyledDivFlexStartWrap>
           <StyledDivFlexBetween>
@@ -220,8 +256,7 @@ function Clients() {
                   icon={faPlus}
                   title="Create a new client."
                   size="1x"
-                  hasMarginRight={true}
-                />
+                  hasMarginRight={true}/>
                 New client
               </XButton>
             </StyledLink>
@@ -266,7 +301,7 @@ function Clients() {
                       component: (
                         <StyledRedXButton
                           key={"card_control" + index}
-                          onClick={() => handleDeleteClient(element.id)}
+                          onClick={() => handleDeleteClient(element)}
                         >
                           <FontAwesomeIcon
                             icon={faTrashCan}
@@ -288,7 +323,7 @@ function Clients() {
                   </XRowContent>
                   {/* <div className='detail-rows-container'> */}
                   {element.roles && element.roles.length > 0 ? (
-                    <React.Fragment key={"XRowDetails"}>
+                    <React.Fragment key={"XRowDetailsRoles"}>
                       {element.roles.map((role, roleIndex) => (
                         <XRowDetails
                           key={"XRowDetails" + roleIndex}
@@ -330,11 +365,11 @@ function Clients() {
                       ))}
                     </React.Fragment>
                   ) : (
-                    <XRowDetails key={"XRowDetails"}></XRowDetails>
+                    <XRowDetails key={"XRowDetailsRoles"}></XRowDetails>
                   )}
                   {element.organizations &&
                   element.organizations.length > 0 ? (
-                    <React.Fragment key={"XRowDetails"}>
+                    <React.Fragment key={"XRowDetailsOrgs"}>
                       {element.organizations.map(
                         (organizations, organizationsIndex) => (
                           <XRowDetails
@@ -380,7 +415,7 @@ function Clients() {
                       )}
                     </React.Fragment>
                   ) : (
-                    <XRowDetails key={"XRowDetails"}></XRowDetails>
+                    <XRowDetails key={"XRowDetailsOrgs"}></XRowDetails>
                   )}
 
                   <XRowExtraDetails

@@ -1,38 +1,24 @@
 import { StyledPageContainer, StyledPageMarginContainer } from "../styles/Containers";
 import { XCard, XDropdown, XInput } from '@ximdex/xui-react/material';
-import { Stack} from '@mui/material';
+import { Button, Stack} from '@mui/material';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare} from "@fortawesome/free-solid-svg-icons";
 import { StyledForm } from '../styles/FormStyles';
 import { CenteredSpinner } from "../styles/Spinner";
+import { useNavigate } from "react-router-dom";
 
 
 const ClientForm = ({client, setClient, selectedRoles, setSelectedRoles, rolesFixed, loading, handleSubmit, dataLoading=false, edit=false, isDisabled=false}) => {
     
+    const navigate = useNavigate();
+
     const onInputChange = (e) => {
         setClient({
             ...client,
             [e.target.id]: e.target.value
         });
     }
-
-    const handleChangeOrg = (event) => {
-        const { value } = event.target;
-        let updatedSelectedOrgs = [...selectedOrgs];
-        const index = selectedOrgs.find(org => org.id == value[value.length - 1]);
-        if (!index) {
-            const orgToAdd = orgFixed.find(org => org.id == value[value.length - 1]);
-            if (orgToAdd) {
-                updatedSelectedOrgs.push(orgToAdd);
-                setSelectedOrgs(updatedSelectedOrgs);
-            }
-        } else {
-            let toDelete = updatedSelectedOrgs.findIndex(org => org.id == value[value.length - 1])
-            updatedSelectedOrgs.splice(toDelete, 1);
-            setSelectedOrgs(updatedSelectedOrgs);
-        }
-    };
 
     const {name, email, password, password2, organization_name, organization_description} = client;
 
@@ -49,16 +35,19 @@ const ClientForm = ({client, setClient, selectedRoles, setSelectedRoles, rolesFi
                     <StyledPageMarginContainer>
                         <XInput id='name' type="text" label="Name" value={name} onChange={(e) => onInputChange(e)} fullWidth required/>
                         <XInput id='email' type="email" label="Email" value={email} onChange={(e) => onInputChange(e)} fullWidth required/>
-                        <XInput id='password' disabled={edit ? true : false} type="password" label="Password" value={password} onChange={(e) => onInputChange(e)} required fullWidth/>
-                        <XInput id='password2' disabled={edit ? true : false} type="password" label="Repeat password" value={password2} onChange={(e) => onInputChange(e)} required fullWidth/>
+                        <XInput id='password'  type="password" label="Password" value={password} onChange={(e) => onInputChange(e)} required={!edit} fullWidth/>
+                        {edit ? null : (
+                            <XInput id='password2' type="password" label="Repeat password" value={password2} onChange={(e) => onInputChange(e)} required fullWidth/>
+                        )}
                     </StyledPageMarginContainer>
                     </XCard>
                     {edit ? null : ( 
                         <XCard title='Client Organization Data (Optional)' tooltip={tooltip}>
                             <StyledPageMarginContainer>
                                 <Stack spacing={3}  direction="column" justifyContent="flex-start" alignItems="center" sx={{marginBottom: 4}}>
-                                <XInput id='organization_name' type="organization_name" label="Organization name" value={organization_name} onChange={(e) => onInputChange(e)} fullWidth/>
-                                <XInput id='organization_description' type="organization_description" label="Organization Description" value={organization_description} onChange={(e) => onInputChange(e)} fullWidth/></Stack>
+                                    <XInput id='organization_name' type="text" label="Organization name" value={organization_name} onChange={(e) => onInputChange(e)} fullWidth/>
+                                    <XInput id='organization_description' type="text" multiline label="Organization Description" value={organization_description} onChange={(e) => onInputChange(e)} fullWidth/>
+                                </Stack>
                             </StyledPageMarginContainer>
                         </XCard>
                     )}
@@ -89,6 +78,7 @@ const ClientForm = ({client, setClient, selectedRoles, setSelectedRoles, rolesFi
                     <LoadingButton disabled={isDisabled} loading={loading} variant="contained" type="submit">
                         <span>{edit ? 'Edit Client' : 'Create Client'}</span>
                     </LoadingButton>
+                    <Button style={{float: 'right'}} variant="contained" onClick={() => {navigate(-1)}}>Back</Button>
                     </StyledPageContainer>
                  )}
             </StyledForm>

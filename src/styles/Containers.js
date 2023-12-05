@@ -300,3 +300,12 @@ export const StyledFullCenter = styled('div')`
   width: 100%;
   background-color: #eeeeee;
 `
+
+export const StyledPageStatusImg = styled.img`
+    height: 50vh;
+    width: auto;
+`
+
+export const StyledPageStatusHeader = styled.h1`
+    color: #3f3d56;
+`

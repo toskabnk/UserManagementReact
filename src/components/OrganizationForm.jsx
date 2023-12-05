@@ -24,21 +24,21 @@ const OrganizationForm = ({organization, setOrganization, selectedClient, setSel
             {dataLoading ? (<CenteredSpinner top={"45%"} left={"45%"}/>)
                 : (
                     <StyledPageContainer>
-                        <h2>{edit ? 'Edit Organizatino Form' : 'Create Organization Form'}</h2>
+                        <h2>{edit ? 'Edit Organization Form' : 'Create Organization Form'}</h2>
                         <XCard title='Role data' isCollapsable={true} tooltip={tooltip}>
                             <StyledPageMarginContainer>
                                 <XInput id='name' type="text" label="Organization name" value={organization.name} onChange={(e) => onInputChange(e)} required fullWidth sx={{mb: 4}}/>
-                                <XInput id='description' type="text" label="Organization description" value={organization.description} onChange={(e) => onInputChange(e)} required fullWidth sx={{mb: 4}}/>
+                                <XInput id='description' type="text" multiline label="Organization description" value={organization.description} onChange={(e) => onInputChange(e)} required fullWidth sx={{mb: 4}}/>
                             </StyledPageMarginContainer>
                         </XCard>
                         {isSuperAdmin ? (
                             <XCard title='Client' isCollapsable={true} tooltip={tooltip}>
                             <StyledPageMarginContainer>
                                 <XDropdown options={clientsFixed} 
-                                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                                    isOptionEqualToValue={(option, value) => option.id === value?.id}
                                     onChange={(e, value) => setSelectedClient(value)}
                                     value={selectedClient}
-                                    label='Clients'
+                                    label='Client'
                                     multiple={false}
                                     labelOptions='name'
                                     hasCheckBoxes={false}

@@ -6,13 +6,12 @@ import { XPopUp } from '@ximdex/xui-react/material';
 import ErrorsModal from '../components/ErrorsModal';
 import ClientForm from '../components/ClientForm';
 
-
 function CreateClient() {
     const token = useSelector((state) => state.user.access_token);
     const [errors, setErrors] = useState(null);
     const [openModal,setOpenModal] = useState(false);
-    const [rolesFixed, setRolesFixed] = useState([]);
-    const [selectedRoles, setSelectedRoles] = useState([]);
+    const [rolesFixed, setRolesFixed] = useState([]); //Roles que se muestran en el dropdown
+    const [selectedRoles, setSelectedRoles] = useState([]); //Roles seleccionados
     const [loading, setLoading] = useState(false)
     const [isDisabled, setIsDisabled] = useState(false);
     const [client, setClient] = useState({
@@ -23,50 +22,61 @@ function CreateClient() {
         password:"",
         password2: ""
     })
-    const {name, email, password, password2, roles, organization_name, organization_description} = client;
 
+    //Consigue los todos los roles existentes
     const getRoles = async() => {
-        await userManagementApi
-        .get("role", { bearerToken: token })
+        await userManagementApi.get("role", { bearerToken: token })
         .then((response) => {
-            console.log(response)
             setRolesFixed(response.data.data.roles)
         })
         .catch((error) => {
-            console.log(error);
+            XPopUp({
+                message: `Error loading roles`,
+                iconType: "error",
+                timer: "3000",
+                popUpPosition: "top",
+                iconColor: "red",
+            });
         })
     }
 
+    //Carga los roles al cargar la página
     useEffect(() => {
       getRoles();
     }, [])
 
+    //Al cambiar los roles seleccionados, se actualizan en el objeto client
     useEffect(() => {
         const selectedRolesIds = selectedRoles.map(role => role.id);
         client.roles = selectedRolesIds;
-        console.log(client)
     }, [selectedRoles])
 
+    //Ejecuta la función postData al hacer submit
     function handleSubmit(event) {
         event.preventDefault();
         postData();
     }
 
+    //Envia una peticion post con los datos del cliente
     const postData = async() => {
         setLoading(true);
+
+        //Creación del objeto body con los datos del cliente
         const body = {
-            name: name,
-            email: email,
-            password: password,
-            password_confirmation: password2,
-            roles: roles,
-            organization_name: organization_name,
-            organization_description: organization_description
+            name: client.name,
+            email: client.email,
+            password: client.password,
+            password_confirmation: client.password2,
+            roles: client.roles,
+            organization_name: client.organization_name,
+            organization_description: client.organization_description
         };
-        await userManagementApi
-        .post("client", body, { bearerToken: token })
+
+        //Elimina los campos vacíos del objeto body
+        Object.keys(body).forEach(key => body[key] == null && delete body[key]);
+
+        await userManagementApi.post("client", body, { bearerToken: token })
         .then((response) => {
-            console.log(`Data response: ${response}`)
             XPopUp({
                 message: `Client created`,
                 iconType: "success",
@@ -74,20 +84,22 @@ function CreateClient() {
                 popUpPosition: "top",
                 iconColor: "ligthgreen",
             });
+
             setLoading(false);
+
+            //Resetea los campos del formulario
             setClient({
                 name: "",
                 email: "",
                 password:"",
                 password2: "",
-                organization_name: "",
-                organization_description: "",
+                organization_name: '',
+                organization_description: '',
                 roles: [],
             });
             setSelectedRoles([]);
         })
         .catch((error) => {
-            console.log(error);
             setLoading(false);
             XPopUp({
                 message: `Error creating the client`,
@@ -96,6 +108,8 @@ function CreateClient() {
                 popUpPosition: "top",
                 iconColor: "red",
             });
+
+            //Si hay errores de validación, se muestran en el modal
             const responseData = error.response.data;
             if (responseData.data && responseData.data.errors) {
                 const validationErrors = responseData.data.errors;

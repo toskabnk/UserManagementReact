@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import AuthContext from './AuthContext';
 import { useSelector, useDispatch } from 'react-redux';
 import { deleteUser } from "../../redux/userSlice"
+import Swal from 'sweetalert2';
 
 const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -34,22 +35,47 @@ const AuthProvider = ({ children }) => {
     setIsAuthenticated(true);
   };
 
+  async function logoutUser() {
+    await userManagementApi.post('logout','', {bearerToken: token})
+      .then((response => {
+        dispatch(deleteUser());
+        setIsAuthenticated(false);
+        setIsAdmin(false);
+        setIsSuperAdmin(false);
+        navigate('/login?logout=true');
+      }))
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  async function forceLogout() {
+    dispatch(deleteUser());
+    setIsAuthenticated(false);
+    setIsAdmin(false);
+    setIsSuperAdmin(false);
+    navigate('/login?error=true');
+  }
+
   //Revoca el token, lo borra del localStorage y navega a la pagina de logout
   const logout = async () => {
-    await userManagementApi.post('logout','', {bearerToken: token})
-    .then((response => {
-      dispatch(deleteUser());
-      setIsAuthenticated(false);
-      setIsAdmin(false);
-      navigate('logout');
-    }))
-    .catch((error) => {
-      console.log(error)
-    });
+    Swal.fire({
+      title: '¿Are you sure?',
+      text: "You will be logged out!",
+      icon: 'warning',
+      confirmButtonText: 'Yes',
+      showCancelButton: true,
+      cancelButtonColor: '#43a1a2',
+      confirmButtonColor: "#d33",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        logoutUser();
+      }
+    })
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isAdmin, isSuperAdmin, logoutError, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isAdmin, isSuperAdmin, logoutError, login, logout, forceLogout }}>
       {children}
     </AuthContext.Provider>
   );

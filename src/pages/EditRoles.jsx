@@ -5,80 +5,107 @@ import { useSelector } from 'react-redux';
 import RoleForm from "../components/RoleForm";
 import { XPopUp } from "@ximdex/xui-react/material";
 import { useSearchParams } from "react-router-dom";
+import { useAuth } from "../providers/AuthProvider/AuthContext";
 
 
 function EditRole() {
+    const { isSuperAdmin } = useAuth();
     let [searchParams] = useSearchParams();
     const id = searchParams.get("id");
     const token = useSelector((state) => state.user.access_token);
-    const [dataLoading, isDataLoading] = useState(true)
-    const [membersFixed, setMembersFixed] = useState([])
-    const [clientsFixed, setClientsFixed] = useState([])
-    const [selectedMembers, setSelectedMembers] = useState([])
-    const [selectedClients, setSelectedClients] = useState([])
-    const [loading, setLoading] = useState(false)
+
+    const [dataLoading, isDataLoading] = useState(true); 
+    const [membersFixed, setMembersFixed] = useState([]); //Members que se muestran en el dropdown
+    const [clientsFixed, setClientsFixed] = useState([]); //Clients que se muestran en el dropdown
+    const [selectedMembers, setSelectedMembers] = useState([]); //Members seleccionados
+    const [selectedClients, setSelectedClients] = useState([]); //Clients seleccionados
+    const [loading, setLoading] = useState(false);
     const [role, setRole] = useState({
         name : '',
         clients : [],
         members : []
     })
 
+    //Consigue los miembros del cliente actual
     const getMembers = async() => {
-        await userManagementApi
-        .get("member", { bearerToken: token })
+        await userManagementApi.get("member", { bearerToken: token })
         .then((response) => {
             let data = response.data.data;
+
+            //Añade la propiedad email a cada miembro
             data.members.forEach(member => {
                 member.email = member.user.email;
             });
             setMembersFixed(data.members)
         })
         .catch((error) => {
-            console.log(error);
+            XPopUp({
+                message: `Error loading members`,
+                iconType: "error",
+                timer: "3000",
+                popUpPosition: "top",
+                iconColor: "red",
+            });
         })
     }
 
+    //Consigue los clientes
     const getClients = async() => {
-        await userManagementApi
-        .get("client", { bearerToken: token })
+        await userManagementApi.get("client", { bearerToken: token })
         .then((response) => {
             setClientsFixed(response.data.data.clients)
         })
         .catch((error) => {
-            console.log(error);
+            XPopUp({
+                message: `Error loading clients`,
+                iconType: "error",
+                timer: "3000",
+                popUpPosition: "top",
+                iconColor: "red",
+            });
         })
     }
 
+    //Consigue el rol
     const getRole = async() => {
-        await userManagementApi
-        .get(`role/${id}`, { bearerToken: token })
+        await userManagementApi.get(`role/${id}`, { bearerToken: token })
         .then((response) => {
             const data = response.data.data;
-            console.log(data)
+
+            //Añade la propiedad email a cada miembro
             setRole(data.role)
             data.role.members.forEach(member => {
                 member.email = member.user.email;
             });
             setSelectedMembers(data.role.members)
             setSelectedClients(data.role.clients)
-            isDataLoading(false);
         })
         .catch((error) => {
-            console.log(error);
+            XPopUp({
+                message: `Error loading role`,
+                iconType: "error",
+                timer: "3000",
+                popUpPosition: "top",
+                iconColor: "red",
+            });
+        })
+        .finally(() => {
             isDataLoading(false);
         })
     }
 
+    //Envia los datos del formulario
     function handleSubmit(event) {
         event.preventDefault();
         putData();
     }
 
+    //Envia una peticion put con los datos del formulario
     const putData = async() => {
         setLoading(true)
+        
         await userManagementApi.put(`role/${id}`, role, { bearerToken: token })
         .then((response) => {
-            setLoading(false)
             XPopUp({
                 message: `Role updated!`,
                 iconType: "success",
@@ -88,7 +115,6 @@ function EditRole() {
             });
         })
         .catch((error) => {
-            console.log(error);
             XPopUp({
                 message: `Error editing role`,
                 iconType: "error",
@@ -96,16 +122,22 @@ function EditRole() {
                 popUpPosition: "top",
                 iconColor: "red",
             });
-            setLoading(false);
+        })
+        .finally(() => {
+            setLoading(false)
         })
     }
 
+    //Obtiene los miembros, clientes y los datos del rol
     useEffect(() => {
-      getClients();
-      getMembers();
-      getRole();
+        getClients();
+        if(isSuperAdmin) {
+            getMembers();
+            getRole();
+        }
     }, [])
 
+    //Actualiza el valor de la propiedad members y clients del objeto role
     useEffect(() => {
         const selectedMembersIds = selectedMembers.map(members => members.id);
         const selectedClientsIds = selectedClients.map(client => client.id);
@@ -128,6 +160,7 @@ function EditRole() {
             edit={true}
             dataLoading={dataLoading}
             handleSubmit={handleSubmit}
+            superAdmin={isSuperAdmin}
             />
         </StyledFullCenter>
     )

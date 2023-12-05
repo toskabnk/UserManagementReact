@@ -11,15 +11,16 @@ const EditMember = () => {
     let [searchParams] = useSearchParams();
     const id = searchParams.get("id");
     const token = useSelector((state) => state.user.access_token);
-    const [rolesFixed, setRolesFixed] = useState([]);
+    
     const [errors, setErrors] = useState(null);
     const [openModal,setOpenModal] = useState(false);
-    const [orgFixed, setOrgFixed] = useState([]);
     const [loading, setLoading] = useState(false)
     const [dataLoading, isDataLoading] = useState(true)
-    const [selectedOrgs, setSelectedOrgs] = useState([]);
-    const [selectedRoles, setSelectedRoles] = useState([]);
-    const [roles, setRoles] = useState([]);
+    const [orgFixed, setOrgFixed] = useState([]); //Organizaciones que se muestran en el dropdown
+    const [selectedOrgs, setSelectedOrgs] = useState([]); //Organizaciones seleccionadas
+    const [rolesFixed, setRolesFixed] = useState([]); //Roles que se muestran en el dropdown
+    const [selectedRoles, setSelectedRoles] = useState([]); //Roles seleccionados
+    const [roles, setRoles] = useState([]); 
     const [orgs, setOrgs] = useState([]);
     const [user, setUser] = useState({
         name: "",
@@ -33,37 +34,48 @@ const EditMember = () => {
     })
     const {name, surname, birthDate, email, password, password2} = user;
 
+    //Consigue los roles del cliente actual
     const getRoles = async() => {
-        await userManagementApi
-        .get("role", { bearerToken: token })
+        await userManagementApi.get("role", { bearerToken: token })
         .then((response) => {
-            console.log(response)
             setRolesFixed(response.data.data.roles)
         })
         .catch((error) => {
-            console.log(error);
+            XPopUp({
+                message: `Error loading roles`,
+                iconType: "error",
+                timer: "3000",
+                popUpPosition: "top",
+                iconColor: "red",
+            });
         })
     }
 
+    //Consigue las organizaciones del cliente actual
     const getOrganizations = async() => {
-        await userManagementApi
-        .get("organization", { bearerToken: token })
+        await userManagementApi.get("organization", { bearerToken: token })
         .then((response) => {
-            console.log(response)
             setOrgFixed(response.data.data.organizations)
         })
         .catch((error) => {
-            console.log(error);
+            XPopUp({
+                message: `Error loading organizations`,
+                iconType: "error",
+                timer: "3000",
+                popUpPosition: "top",
+                iconColor: "red",
+            });
         })
     }
 
     const getUser = async(id) => {
         isDataLoading(true);
-        await userManagementApi
-        .get(`member/${id}`, { bearerToken: token })
+        
+        await userManagementApi.get(`member/${id}`, { bearerToken: token })
         .then((response) => {
-            console.log(response)
-            let data = response.data.data.member;
+            const data = response.data.data.member;
+
+            //Guardamos los datos del usuario en el estado
             setUser(
                 {
                     name: data.name,
@@ -80,19 +92,27 @@ const EditMember = () => {
             setSelectedRoles(data.roles)
         })
         .catch((error) => {
-            console.log(error);
+            XPopUp({
+                message: `Error loading member`,
+                iconType: "error",
+                timer: "3000",
+                popUpPosition: "top",
+                iconColor: "red",
+            });
         })
         .finally(() => {
             isDataLoading(false);
         })
     }
 
+    //Al cargar la pagina, consigue los roles y organizaciones del cliente actual y los datos del member
     useEffect(() => {
       getRoles();
       getOrganizations();
       getUser(id);
     }, [])
 
+    //Cada vez que se cambia el estado de selectedRoles o selectedOrgs, se actualiza el estado de user
     useEffect(() => {
         const selectedRolesIds = selectedRoles.map(role => role.id);
         const selectedOrgIds = selectedOrgs.map(org => org.id);
@@ -100,14 +120,18 @@ const EditMember = () => {
         setOrgs(selectedOrgIds);
     }, [selectedOrgs, selectedRoles])
 
+    //Funcion que se ejecuta al enviar el formulario
     function handleSubmit(event) {
         event.preventDefault();
         postData();
     }
 
+    //Envia una peticion post con los datos del role
     const postData = async() => {
         setLoading(true);
-        const userDTO = {
+
+        //Creación del objeto body con los datos del usuario
+        const body = {
             name: name,
             surname: surname,
             birth_date: birthDate,
@@ -117,11 +141,9 @@ const EditMember = () => {
             roles: roles,
             organizations: orgs
         };
-        setLoading(false);
-        await userManagementApi
-        .put(`member/${id}`, userDTO, { bearerToken: token })
+
+        await userManagementApi.put(`member/${id}`, body, { bearerToken: token })
         .then((response) => {
-            console.log(`Data response: ${response}`)
             XPopUp({
                 message: `User edited`,
                 iconType: "success",
@@ -132,7 +154,6 @@ const EditMember = () => {
             setLoading(false);
         })
         .catch((error) => {
-            console.log(error);
             const responseData = error.response.data;
             XPopUp({
                 message: `Error editing the user`,
@@ -141,6 +162,8 @@ const EditMember = () => {
                 popUpPosition: "top",
                 iconColor: "red",
             });
+
+            //Si hay errores de validación, se muestran en un modal
             if (responseData.data && responseData.data.errors) {
                 const validationErrors = responseData.data.errors;
                 setErrors(validationErrors);

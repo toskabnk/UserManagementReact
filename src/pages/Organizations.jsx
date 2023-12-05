@@ -1,18 +1,17 @@
 import React, { useState, useEffect} from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare, faCoffee, faTrashCan, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faPenToSquare, faParagraph, faTrashCan, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { StyledGreenXButton, StyledRedXButton, } from '@ximdex/xui-react/material/XRow/StyledXRow.js';
-import { XSpinner, XRow, XRowDetails, XRowExtraDetails, XRowContent, XButton, XRadio, XInput} from '@ximdex/xui-react/material';
+import { XSpinner, XRow, XRowDetails, XRowExtraDetails, XRowContent, XButton, XRadio, XInput, XPopUp} from '@ximdex/xui-react/material';
 import styled from 'styled-components';
-import { useAuth } from "../providers/AuthProvider/AuthContext";
 import { useSelector } from "react-redux";
 import userManagementApi from "../services/apiServices";
 import {useNavigate } from "react-router-dom";
 import { StyledActivitiesListContainer, StyledDivFlexBetween, StyledDivFlexStartWrap, StyledFilterXCard, StyledGrid, StyledSearchContainer } from "../styles/Containers";
 import { StyledFontAwesomeIcon } from "../styles/Icons";
-import { Chip } from "@mui/material";
-import Divider from '@mui/material/Divider';
+import { Chip, CircularProgress } from "@mui/material";
 import { StyledLink } from "../styles/StyledLink";
+import Swal from "sweetalert2";
 
 const CenteredSpinner = styled(XSpinner)`
         width: 100px;
@@ -29,86 +28,191 @@ export const StyledFullCenter = styled('div')`
 `;
 
 function Organizations() { 
-  const { isAuthenticated } = useAuth();
+  const token = useSelector((state) => state.user.access_token);
+  
   const [loading, isLoading] = useState(true);
   const [data, setData] = useState(null);
-  const token = useSelector((state) => state.user.access_token);
+  const [radioValue, setRadioValue] = useState("name"); //Valor por defecto del filtro de busqueda
+  const [searchValue, setSearchValue] = useState(""); //Valor del input de busqueda
   const [infoRows, setInfoRows] = useState([]);
   const [fetchingInfoRows, setFetchingInfoRows] = useState([])
 
   const navigate = useNavigate();
 
-  const loadDetails = async (id, position) => {
+  //Carga los detalles de una organizacion
+  const loadDetails = async (id, index) => {
+    //Si no se han cargado los detalles de la organizacion, se cargan
     if(!infoRows[index]){
       let copy = [...fetchingInfoRows]
       copy[index] = true
-      setFetchingCourse(copy)
-
+      setFetchingInfoRows(copy)
+      
       await userManagementApi.get(`organization/${id}`, {bearerToken: token})
       .then((response) => {
-          let copy = [...infoRows];
-          copy[position] = response.data.data.organization;
-          setInfoRows(copy)
+        let copy = [...infoRows];
+        copy[index] = response.data.data.organization;
+        setInfoRows(copy)
       })
       .catch((error) => {
-          console.log(error)
+        XPopUp({
+          message: `Error loading organization details`,
+          iconType: "error",
+          timer: "3000",
+          popUpPosition: "top",
+          iconColor: "red",
+        });
       }).finally(() => {
-        let copy = [...fetchingCourse]
+        let copy = [...fetchingInfoRows]
         copy[index] = false
-        setFetchingCourse(copy)
+        setFetchingInfoRows(copy)
       });
-
     }
-   
   }
 
-
+  //Cuando se actualiza el array de organizaciones, se actualiza el array de cargando detalles
   useEffect(() => {
-      let loading = []
-      data.forEach((activity) => {
-          loading.push(false)
+    console.log(data)
+    let load = []
+      if(data){
+        data.forEach((organizations) => {
+          load.push(false)
       })
-      setFetchingInfoRows(loading)
+      setFetchingInfoRows(load)
+    }
   },[data]);
     
-    
-    const options = [
-        { value: 'value1', label: 'label1', icon: <FontAwesomeIcon icon={faCoffee} />},
-        { value: 'value2', label: 'label2', icon: <FontAwesomeIcon icon={faCoffee} />},
-    ];
+  //Opciones del filtro de busqueda
+  const options = [
+      { value: 'name', label: 'Name', icon: <FontAwesomeIcon icon={faParagraph} />},
+      { value: 'description', label: 'Description', icon: <FontAwesomeIcon icon={faParagraph} />},
 
-    const getOrganizations = async () => {
-        async function fecthData() {
-          await userManagementApi.get('organization', {bearerToken: token})
-          .then((response) => {
-              console.log(response)
-              setData(response.data.data.organizations);
-              isLoading(false);
-          })
-          .catch((error) => {
-              console.log(error)
-              isLoading(false)
-          })
-          .finally(() => {
-          })
-        }
-        fecthData();
-    }
+  ];
 
-    const handleDelete = async (id) => {
-      await userManagementApi.delete(`organization/${id}`, {bearerToken: token})
-      .then((response) => {
-          console.log(response)
-          getOrganizations();
-      })
-      .catch((error) => {
-          console.log(error)
-      })
-    }
+  //Consigue las organizaciones
+  const getOrganizations = async () => {
+      async function fecthData() { 
+        await userManagementApi.get('organization', {bearerToken: token})
+        .then((response) => {
+            setData(response.data.data.organizations);
+        })
+        .catch((error) => {
+            XPopUp({
+              message: `Error loading organizations`,
+              iconType: "error",
+              timer: "3000",
+              popUpPosition: "top",
+              iconColor: "red",
+            });
+        })
+        .finally(() => {
+          isLoading(false)
+        })
+      }
+      fecthData();
+  }
 
-    useEffect(() => {
-        getOrganizations();
-      },[]);
+  //Elimina una organizacion
+  const handleDelete = async (id) => {
+    Swal.fire({
+      title: `Are you sure you want to remove this organization?`,
+      showDenyButton: true,
+      showCancelButton: false,
+      confirmButtonText: `Remove`,
+      denyButtonText: `Cancel`,
+      confirmButtonColor: "#d33",
+      denyButtonColor: "#43a1a2",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        isLoading(true)
+        await userManagementApi.delete(`organization/${id}`, {bearerToken: token})
+        .then((response) => {
+            getOrganizations();
+            XPopUp({
+              message: `Organization removed`,
+              iconType: "success",
+              timer: "3000",
+              popUpPosition: "top",
+              iconColor: "ligthgreen",
+            });
+        })
+        .catch((error) => {
+            XPopUp({
+              message: `Error removing organization`,
+              iconType: "error",
+              timer: "3000",
+              popUpPosition: "top",
+              iconColor: "red",
+            });
+        })
+      }
+    })
+  }
+
+  //Elimina un usuario de una organizacion
+  const handleRemoveUser = async (member, organization) => {
+    Swal.fire({
+      title: `Are you sure you want to remove ${member.name} from ${organization.name}?`,
+      showDenyButton: true,
+      showCancelButton: false,
+      confirmButtonText: `Remove`,
+      denyButtonText: `Cancel`,
+      confirmButtonColor: "#d33",
+      denyButtonColor: "#43a1a2",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        isLoading(true)
+        await userManagementApi.delete(`member/${member.id}/organization/${organization.id}`, {bearerToken: token})
+        .then((response) => {
+          loadDetails(organization.id, organization.id)
+          XPopUp({
+            message: `Organization removed`,
+            iconType: "success",
+            timer: "3000",
+            popUpPosition: "top",
+            iconColor: "ligthgreen",
+          });
+        })
+        .catch((error) => {
+          XPopUp({
+            message: `Error removing organization`,
+            iconType: "error",
+            timer: "3000",
+            popUpPosition: "top",
+            iconColor: "red",
+          });
+        })
+        .finally(() => {
+          isLoading(false)
+        })
+      }
+    })
+  }
+
+  //Busca una organizacion
+  const search = async () => {
+    isLoading(true)
+    await userManagementApi.get(`organization?${radioValue}=${searchValue}`, {bearerToken: token})
+    .then((response) => {
+      setData(response.data.data.organizations);
+    })
+    .catch((error) => {
+      XPopUp({
+        message: `Error searching organization`,
+        iconType: "error",
+        timer: "3000",
+        popUpPosition: "top",
+        iconColor: "red",
+      });
+    })
+    .finally(() => {
+      isLoading(false)
+    })
+  }
+
+  //Carga las organizaciones al cargar la pagina
+  useEffect(() => {
+      getOrganizations();
+    },[]);
 
     return (
       <StyledFullCenter>
@@ -117,29 +221,29 @@ function Organizations() {
             <StyledFilterXCard
               isCollapsable={true}
               isCollapsed={false}
-              title="Status"
-            >
+              title="Search by">
               <XRadio
                 direction="column"
-                value={"ALL"}
+                value={radioValue}
                 onChange={(e) => {
-                  console.log(e);
+                  setRadioValue(e.target.value);
                 }}
                 options={options}
                 paddingXSize="s"
-                style={{ paddingBottom: "0.5em" }}
-              />
+                style={{ paddingBottom: "0.5em" }}/>
             </StyledFilterXCard>
           </StyledSearchContainer>
           <StyledActivitiesListContainer>
             <StyledDivFlexStartWrap>
               <XInput
-                value={""}
+                value={searchValue}
                 onChange={(e) => {
-                  console.log(e);
+                  setSearchValue(e.target.value);
                 }}
                 onKeyDown={(e) => {
-                  console.log(e);
+                  if (e.key === "Enter") {
+                    search();
+                  }
                 }}
                 type="search"
                 size="small"
@@ -148,7 +252,7 @@ function Organizations() {
                   margin: "0",
                   background: "#FBFBFB",
                 }}
-                placeholder="Test search"
+                placeholder={`Search by ${radioValue}`}
               />
             </StyledDivFlexStartWrap>
             <StyledDivFlexBetween>
@@ -179,7 +283,7 @@ function Organizations() {
                     labelButtonCollapsable={
                       <>
                         <p style={{ marginRight: "1em" }}>
-                          Details
+                          Members
                         </p>
                       </>
                     }
@@ -216,82 +320,47 @@ function Organizations() {
                   >
                     <XRowContent key="XRowContent">
                       <p style={{ marginRight: "1em" }}>
-                        Orgnanization: {element.name}
+                        Name: {element.name}
                       </p>
                       <p style={{ marginRight: "1em" }}>
                         ID: {element.id}
                       </p>
                     </XRowContent>
-                    {/* <div className='detail-rows-container'> */}
-                    {/* <XRowDetails key="XRowDetails">
-                      <>
-                        {fetchingInfoRows[index] ? (<p>Loading...</p>) : (<p>Algo</p>)}
-                      </> */}
-                      {/* {fetchingInfoRows[index] 
-                            ? 
-                                <XRowDetails
-                                    key={"XRowDetails_loading"}
-                                    style={{justifyContent:'center'}}
-                                    // controlsDetails={[]}
+                    {fetchingInfoRows[index] ? (
+                      <XRowDetails
+                      key={"XRowDetails_loading"}
+                      style={{justifyContent:'center'}}>
+                        <CircularProgress color='primary' size={'50px'} style={{padding: '10px'}}/>
+                      </XRowDetails> 
+                    ) : (
+                      <React.Fragment key={"XRowDetails"}>
+                        {infoRows[index] && infoRows[index].members.map((member, memberIndex) => (
+                          <XRowDetails
+                          key={`XRowDetails_${memberIndex}`}
+                          controlsDetails={[
+                            {
+                              component: (
+                                <StyledGreenXButton
+                                  onClick={() =>
+                                    handleRemoveUser(member, element)
+                                  }
                                 >
-                                    <CircularProgress color='primary' size={'50px'} style={{padding: '10px'}}/>
-                                </XRowDetails>
-                            :
-                            <React.Fragment key="XRowDetails">
-                                <XRowDetails key={"XRowDetails_" + "item1"}>
-                                  <p style={{marginRight:'1em'}}><strong>Course Description: </strong>
-                                    {coursesDetails[index] && coursesDetails[index].dam_data !== "" &&
-                                    coursesDetails[index]?.dam_data?.data.description.description 
-                                      ? coursesDetails[index]?.dam_data?.data.description.description
-                                      : "No description assigned yet"}
-                                  </p>
-                                </XRowDetails>
-                                <XRowDetails key={"XRowDetails_" + "item2"}>
-                                  <p style={{marginRight:'1em'}}><strong>Category: </strong>
-                                    {(coursesDetails[index] && coursesDetails[index].dam_data !== null &&
-                                      coursesDetails[index]?.dam_data?.data?.description?.category) 
-                                        ? coursesDetails[index].dam_data.data.description.category.replaceAll(/_/g, " ")
-                                        : "No category assigned yet"
-                                    }
-                                  </p>
-                                </XRowDetails>
-                                <XRowDetails key={"XRowDetails_" + "item3"}>
-                                <p style={{marginRight:'1em'}}> <strong>{coursesDetails[index] && coursesDetails[index].dam_data !== null && coursesDetails[index].dam_data?.data.description.skills?.length === 1 ? "Course skill: " : "Course skills: "}</strong>
-                                    {coursesDetails[index] && coursesDetails[index].dam_data !== null && 
-                                    coursesDetails[index]?.dam_data?.data.description.skills?.length > 0 ? (
-                                      coursesDetails[index]?.dam_data?.data.description.skills?.map((skill, i) => (
-                                          <span key={i}>
-                                          {skill}
-                                          {coursesDetails[index].dam_data?.data.description.skills?.length === i + 1 ? "" :
-                                              coursesDetails[index].dam_data?.data.description.skills?.length - 1 === i + 1 ? " and " : ", "}
-                                          </span>
-                                      ))
-                                      ) : (
-                                      <span>No skills assigned yet</span>
-                                      )}        
-                                  </p>              
-                                </XRowDetails>
-                                <XRowDetails key={"XRowDetails_" + "item4"}>
-                                  <p style={{marginRight:'1em'}}><strong>Student vacants: </strong>
-                                    {coursesDetails[index] && coursesDetails[index].student_vacants ? coursesDetails[index].student_vacants
-                                      : "No vacants assigned yet"}
-                                  </p>
-                                </XRowDetails>
-                                <XRowDetails key={"XRowDetails_" + "item5"}>
-                                  <p style={{marginRight:'1em'}}><strong>Students in course: </strong>
-                                    {coursesDetails[index] && coursesDetails[index]?.students_in_course}
-                                  </p>
-                                </XRowDetails>
-                                <XRowDetails key={"XRowDetails_" + "item5"}>
-                                  <p style={{marginRight:'1em'}}><strong>Status: </strong>
-                                    {coursesDetails[index] && coursesDetails[index]?.dam_data !== null &&
-                                     coursesDetails[index]?.dam_data?.active === 1 ? 'Published'
-                                      : "Unpublished"}
-                                  </p>
-                                </XRowDetails>
-                            </React.Fragment>
-                        } */}
-                    {/* </XRowDetails> */}
+                                  <FontAwesomeIcon
+                                    icon={faTrashCan}
+                                    size="xs"
+                                    title="Remove user from organization"
+                                  />
+                                </StyledGreenXButton>
+                              ),
+                            },
+                          ]}>
+                            <p style={{ marginRight: "1em" }}>
+                              {`${member.name} ${member.surname}`}
+                            </p>
+                          </XRowDetails>
+                        ))}
+                      </React.Fragment>
+                    )}
                     <XRowExtraDetails
                       key={"XRowExtraDetails"}
                       extraDetails={[

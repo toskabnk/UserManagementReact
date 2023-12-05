@@ -1,9 +1,8 @@
 import React, { useState, useEffect} from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare, faCoffee, faTrashCan, faPlus} from "@fortawesome/free-solid-svg-icons";
+import { faPenToSquare, faTrashCan, faPlus, faParagraph, faAt} from "@fortawesome/free-solid-svg-icons";
 import { StyledGreenXButton, StyledRedXButton, } from '@ximdex/xui-react/material/XRow/StyledXRow.js';
 import { XRow, XRowDetails, XRowExtraDetails, XRowContent, XButton, XRadio, XInput, XPopUp} from '@ximdex/xui-react/material';
-import { useAuth } from "../providers/AuthProvider/AuthContext";
 import { useSelector } from "react-redux";
 import userManagementApi from "../services/apiServices";
 import { StyledActivitiesListContainer, StyledDivFlexBetween, StyledDivFlexStartWrap, StyledFilterXCard, StyledFullCenter, StyledGrid, StyledSearchContainer } from "../styles/Containers";
@@ -13,24 +12,39 @@ import { Chip } from "@mui/material";
 import Divider from '@mui/material/Divider';
 import { useNavigate } from "react-router-dom";
 import { CenteredSpinner } from "../styles/Spinner";
+import Swal from "sweetalert2";
 
 function Users() { 
-  const { isAuthenticated } = useAuth();
+  const token = useSelector((state) => state.user.access_token);
+  
   const [loading, isLoading] = useState(true);
   const [data, setData] = useState(null);
-  const token = useSelector((state) => state.user.access_token);
+  const [radioValue, setRadioValue] = useState("name");
+  const [searchValue, setSearchValue] = useState("");
+  
   const navigate = useNavigate();
 
   const options = [
-      { value: 'value1', label: 'label1', icon: <FontAwesomeIcon icon={faCoffee} />},
-      { value: 'value2', label: 'label2', icon: <FontAwesomeIcon icon={faCoffee} />},
+      { value: 'name', label: 'Name', icon: <FontAwesomeIcon icon={faParagraph} />},
+      { value: 'surname', label: 'Surname', icon: <FontAwesomeIcon icon={faParagraph} />},
+      { value: 'email', label: 'Email', icon: <FontAwesomeIcon icon={faAt} />},
   ];
 
-  const handleDeleteUser = (id) => {
-    if(window.confirm(`Are you sure you want to delete the user with id ${id}?`)){
-      userManagementApi.delete(`user/${id}`, {bearerToken: token})
+  //Borra un usuario
+  const handleDeleteUser = (user) => {
+    Swal.fire({
+      title: 'Remove user',
+      text: `Are you sure you want to delete the user ${user.name}?`,
+      showDenyButton: true,
+      showCancelButton: false,
+      confirmButtonText: `Remove`,
+      denyButtonText: `Cancel`,
+      confirmButtonColor: "#d33",
+      denyButtonColor: "#43a1a2",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        userManagementApi.delete(`user/${user.id}`, {bearerToken: token})
         .then((response) => {
-          console.log(response)
           getUsers();
           XPopUp({
             message: `User deleted`,
@@ -40,7 +54,6 @@ function Users() {
             iconColor: "ligthgreen",
           });
         }).catch((error) => {
-          console.log(error)
           XPopUp({
             message:`Error deleting user`,
             iconType:'error',
@@ -48,86 +61,114 @@ function Users() {
             popUpPosition:'top',
             iconColor: 'red',
           })
-      })
-    }
+        })
+      }
+    })
   }
 
+  //Dirige a la página de edición de usuario
   const handleEditUser = (user) => {
     navigate(`/editMember?id=${user.id}`)
   }
 
+  //Elimina un rol del usuario
   const handleRemoveRole = (user, role) => {
-    if(window.confirm(`Are you sure you want to remove the role ${role.name} from the ${user.name}?`)){
-      userManagementApi.delete(`member/${user.id}/role/${role.id}`, {bearerToken: token})
-      .then((response) => {
-        console.log(response)
-        getUsers();
-        XPopUp({
-          message: `Role removed`,
-          iconType: "success",
-          timer: "3000",
-          popUpPosition: "top",
-          iconColor: "ligthgreen",
-        });
-      }).catch((error) => {
-        console.log(error)
-        XPopUp({
-          message:`Error removing role from the user`,
-          iconType:'error',
-          timer:'3000',
-          popUpPosition:'top',
-          iconColor: 'red',
+    Swal.fire({
+      title: 'Remove role',
+      text: `Are you sure you want to remove the role ${role.name} from the ${user.name}?`,
+      showDenyButton: true,
+      showCancelButton: false,
+      confirmButtonText: `Remove`,
+      denyButtonText: `Cancel`,
+      confirmButtonColor: "#d33",
+      denyButtonColor: "#43a1a2",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        userManagementApi.delete(`member/${user.id}/role/${role.id}`, {bearerToken: token})
+        .then((response) => {
+          getUsers();
+          XPopUp({
+            message: `Role removed`,
+            iconType: "success",
+            timer: "3000",
+            popUpPosition: "top",
+            iconColor: "ligthgreen",
+          });
+        }).catch((error) => {
+          XPopUp({
+            message:`Error removing role from the user`,
+            iconType:'error',
+            timer:'3000',
+            popUpPosition:'top',
+            iconColor: 'red',
+          })
         })
-      })
-    }
+      }
+    })
   }
 
+  //Dirige a la página de edición del rol
   const handleEditRole = (role) => {
     navigate(`/editRole?id=${role.id}`)
   }
 
+  //Elimina una organización del usuario
   const handleRemoveOrganization = (user, organization) => {
-    if(window.confirm(`Are you sure you want to remove the organization ${organization.name} from the ${user.name}?`)){
-      userManagementApi.delete(`member/${user.id}/organization/${organization.id}`, {bearerToken: token})
-      .then((response) => {
-        console.log(response)
-        getUsers();
-        XPopUp({
-          message: `Organization removed`,
-          iconType: "success",
-          timer: "3000",
-          popUpPosition: "top",
-          iconColor: "ligthgreen",
-        });
-      }).catch((error) => {
-        console.log(error)
-        XPopUp({
-          message:`Error removing organization from the user`,
-          iconType:'error',
-          timer:'3000',
-          popUpPosition:'top',
-          iconColor: 'red',
+    Swal.fire({
+      title: 'Remove organization',
+      text: `Are you sure you want to remove the organization ${organization.name} from the ${user.name}?`,
+      showDenyButton: true,
+      showCancelButton: false,
+      confirmButtonText: `Remove`,
+      denyButtonText: `Cancel`,
+      confirmButtonColor: "#d33",
+      denyButtonColor: "#43a1a2",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        userManagementApi.delete(`member/${user.id}/organization/${organization.id}`, {bearerToken: token})
+        .then((response) => {
+          getUsers();
+          XPopUp({
+            message: `Organization removed from client`,
+            iconType: "success",
+            timer: "3000",
+            popUpPosition: "top",
+            iconColor: "ligthgreen",
+          });
+        }).catch((error) => {
+          XPopUp({
+            message:`Error removing organization from the user`,
+            iconType:'error',
+            timer:'3000',
+            popUpPosition:'top',
+            iconColor: 'red',
+          })
         })
-      })
-    }
+      }
+    })
   }
 
+  //Dirige a la página de edición de la organización
   const handleEditOrganization = (organization) => {
     navigate(`/editOrganization?id=${organization.id}`)
   }
 
-
+  //Obtiene los usuarios
   const getUsers = async () => {
     async function fecthData() {
       isLoading(true);
-      await userManagementApi
-        .get("member", { bearerToken: token })
+      await userManagementApi.get("member", { bearerToken: token })
         .then((response) => {
-          console.log(response);
           setData(response.data.data.members);
         })
         .catch((error) => {
-          console.log(error);
+          XPopUp({
+            message:`Error loading users`,
+            iconType:'error',
+            timer:'3000',
+            popUpPosition:'top',
+            iconColor: 'red',
+          })
         })
         .finally(() => {
           isLoading(false);
@@ -136,41 +177,34 @@ function Users() {
     fecthData();
   }
 
+  //Busca un usuario
+  const search = async () => {
+    async function fecthData() {
+      isLoading(true);
+      await userManagementApi.get(`member?${radioValue}=${searchValue}`, { bearerToken: token })
+        .then((response) => {
+          setData(response.data.data.members);
+        })
+        .catch((error) => {
+          XPopUp({
+            message:`Error loading users`,
+            iconType:'error',
+            timer:'3000',
+            popUpPosition:'top',
+            iconColor: 'red',
+          })
+        })
+        .finally(() => {
+          isLoading(false);
+        });
+    }
+    fecthData();
+  }
+
+  //Al cargar la pagina, ejecuta la función getUsers
   useEffect(() => {
       getUsers();
-      console.log(`User isAuthenticaded ${isAuthenticated}`)
   },[]);
-  
-  /*
-  Response example
-  {
-  "id": 3,
-  "name": "Geo Beahan",
-  "email": "amaya.oberbrunner@example.org",
-  "email_verified_at": "2023-10-19T10:31:22.000000Z",
-  "created_at": "2023-10-19T10:31:22.000000Z",
-  "updated_at": "2023-10-19T10:31:22.000000Z",
-  "surname": "Fadel",
-  "birth_date": "1993-10-09",
-  "roles": [
-    {
-      "id": 1,
-      "name": "Admin",
-      "created_at": "2023-10-19T10:31:22.000000Z",
-      "updated_at": "2023-10-19T10:31:22.000000Z"
-    }
-  ],
-  "organizations": [
-    {
-      "id": 1,
-      "name": "XIMDEX",
-      "description": "Modificado",
-      "created_at": "2023-10-20T11:39:39.000000Z",
-      "updated_at": "2023-10-20T11:48:52.000000Z"
-    }
-  ]
-}
-*/
 
   return (
     <StyledFullCenter>
@@ -179,13 +213,13 @@ function Users() {
           <StyledFilterXCard
             isCollapsable={true}
             isCollapsed={false}
-            title="Status"
+            title="Search by"
           >
             <XRadio
               direction="column"
-              value={"ALL"}
+              value={radioValue}
               onChange={(e) => {
-                console.log(e);
+                setRadioValue(e.target.value);
               }}
               options={options}
               paddingXSize="s"
@@ -196,12 +230,14 @@ function Users() {
         <StyledActivitiesListContainer>
           <StyledDivFlexStartWrap>
             <XInput
-              value={""}
+              value={searchValue}
               onChange={(e) => {
-                console.log(e);
+                setSearchValue(e.target.value);
               }}
               onKeyDown={(e) => {
-                console.log(e);
+                if (e.key === "Enter") {
+                  search();
+                }
               }}
               type="search"
               size="small"
@@ -210,7 +246,7 @@ function Users() {
                 margin: "0",
                 background: "#FBFBFB",
               }}
-              placeholder="Test search"
+              placeholder={`Search by ${radioValue}`}
             />
           </StyledDivFlexStartWrap>
           <StyledDivFlexBetween>
@@ -268,7 +304,7 @@ function Users() {
                       component: (
                         <StyledRedXButton
                           key={"card_control" + index}
-                          onClick={() => handleDeleteUser(element.id)}
+                          onClick={() => handleDeleteUser(element)}
                         >
                           <FontAwesomeIcon
                             icon={faTrashCan}

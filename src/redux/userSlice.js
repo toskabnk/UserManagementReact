@@ -22,13 +22,13 @@ export const userSlice = createSlice({
             localStorage.setItem('state', JSON.stringify(state));
         },
 
-        deleteUser: (state, action) => {
+        deleteUser: (state) => {
             state.name = null;
             state.access_token = null;
             state.id = null;
             state.roles = null;
             state.isAuthenticated = false;
-            localStorage.setItem('state');
+            localStorage.setItem('state', JSON.stringify(state));
         }
 
     }

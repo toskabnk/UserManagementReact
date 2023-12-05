@@ -7,9 +7,12 @@ import userManagementApi from '../services/apiServices';
 import { DivErrorMessages, ListErrorMessages, ElementErrorMessages} from '../styles/ErrorMessagesStyles';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useAuth } from '../providers/AuthProvider/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDispatch } from "react-redux";
 import { addUser } from "../redux/userSlice"
+import { Alert, IconButton } from '@mui/material';
+import Collapse from '@mui/material/Collapse';
+import CloseIcon from '@mui/icons-material/Close';
 
 const StyledP = styled.p`
     margin-top: 10px;
@@ -31,13 +34,16 @@ const StyledModal = styled(XModal)`
 `;
 
 function LoginPage() { 
-    //Variables
     const { isAuthenticated, login } = useAuth();
+
+    const [searchParams] = useSearchParams();
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [openModal,setOpenModal] = useState(false);
     const [errors, setErrors] = useState(null);
     const [errore, setError] = useState(null);
+    const [openLogout, setOpenLogout] = useState(false); //Alert de logout
+    const [openError, setOpenError] = useState(false); //Alert de forceLogout
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -101,10 +107,8 @@ function LoginPage() {
                 };
 
                 dispatch(addUser(state));
-                //Pasados 3 segundos nos dirigimos a la raiz.
-                setTimeout(() => {
-                    navigate('/');
-                }, 3000); // 3000 milisegundos (3 segundos)
+                //Nos redirige a la pagina principal
+                navigate('/');
             }
             
         })
@@ -142,11 +146,61 @@ function LoginPage() {
         })
     }
 
+    //Muestra el Alert de logout o error si se pasa por la url
+    useEffect(() => {
+        if(searchParams.get('logout')){
+            setOpenLogout(true);
+        }
+
+        if(searchParams.get('error')){
+            setOpenError(true);
+        }
+    }, [searchParams])
+
     return (
         <>
             <StyledSectionBorder>
                 <StyledP>Login</StyledP>
                 <StyledForm>
+                    {/*Muestra un Alert si logout o error ha sido pasado por en url*/}
+                    {searchParams.get('logout') && 
+                        <Collapse in={openLogout}>
+                            <Alert
+                                variant="outlined" 
+                                action={
+                                    <IconButton
+                                      aria-label="close"
+                                      color="inherit"
+                                      size="small"
+                                      onClick={() => {
+                                        setOpenLogout(false);
+                                    }}>
+                                        <CloseIcon fontSize="inherit" />
+                                    </IconButton>
+                                }
+                                severity="info">
+                                    Logged out!
+                            </Alert>
+                        </Collapse>}
+                    {searchParams.get('error') && 
+                        <Collapse in={openError}>
+                            <Alert 
+                                variant="outlined"
+                                action={
+                                    <IconButton
+                                    aria-label="close"
+                                    color="inherit"
+                                    size="small"
+                                    onClick={() => {
+                                        setOpenError(false);
+                                    }}>
+                                        <CloseIcon fontSize="inherit" />
+                                    </IconButton>
+                                }
+                                severity="error">
+                                    Session expired
+                            </Alert>
+                        </Collapse>}
                     <XInput id='email' type='text' label='Email' required={true} size='small' fullWidth value={email} onChange={(e) => onInputChange(e)} />
                     <XInput id='password' type='password' label='Password' required={true} size='small' fullWidth value={password} onChange={(e) => onInputChange(e)} />
                     {/*Si esta cargando  y no hay exito muestra el spinner*/

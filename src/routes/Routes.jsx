@@ -4,8 +4,7 @@ import Home from '../pages/Home'
 import Users from '../pages/Users'
 import Register from '../pages/Register'
 import LoginPage from '../pages/Login'
-import Logout from '../pages/Logout'
-import User from '../pages/User'
+import Profile from '../pages/Profile'
 import Roles from '../pages/Roles'
 import Organizations from '../pages/Organizations'
 import CreateMember from '../pages/CreateMember';
@@ -20,6 +19,8 @@ import EditOrganization from '../pages/EditOrganization';
 import ProtectedSuperAdminRoute from './ProtectedSuperAdmin';
 import ProtectedRoute from './ProtectedRoute';
 import ProtectedAdminRoutes from './ProtectedAdminRoutes';
+import PasswordChange from '../pages/PasswordChange';
+import NotFound from '../pages/NotFound';
 
 const Routes = () => {
     return (
@@ -27,12 +28,13 @@ const Routes = () => {
             {/* Rutas publicas */}
             <Route path="/register" element={<Register/> } />
             <Route path="/login" element={<LoginPage/> } />
-            <Route path="/logout" element={<Logout/> } />
-            <Route path="*" element={<Home/> } /> 
+            <Route path="*" element={<NotFound/> } /> 
             
             {/* Rutas privadas */}
             <Route element={<ProtectedRoute/>}>
-                <Route path="/user" element={<User/> } />
+                <Route path="/" element={<Home/> } /> 
+                <Route path="/user" element={<Profile/> } />
+                <Route path="/changePassword" element={<PasswordChange/> } />
 
                 {/* Rutas privadas de administrador */}
                 <Route element={<ProtectedAdminRoutes/>}>

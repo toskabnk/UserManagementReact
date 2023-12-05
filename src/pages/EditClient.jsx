@@ -11,51 +11,58 @@ const EditClient = () => {
     let [searchParams] = useSearchParams();
     const id = searchParams.get("id");
     const token = useSelector((state) => state.user.access_token);
+
     const [dataLoading, setDataLoading] = useState(true);
     const [errors, setErrors] = useState(null);
     const [openModal,setOpenModal] = useState(false);
-    const [rolesFixed, setRolesFixed] = useState([]);
-    const [selectedRoles, setSelectedRoles] = useState([]);
+    const [rolesFixed, setRolesFixed] = useState([]); //Roles que se muestran en el dropdown
+    const [selectedRoles, setSelectedRoles] = useState([]); //Roles seleccionados
     const [loading, setLoading] = useState(false)
     const [client, setClient] = useState({
         name: "",
         email: "",
+        password: null,
     })
-    const {name, email, roles} = client;
 
+    //Consigue los roles del cliente actual
     const getRoles = async() => {
-        await userManagementApi
-        .get("role", { bearerToken: token })
+        await userManagementApi.get("role", { bearerToken: token })
         .then((response) => {
-            console.log(response)
             setRolesFixed(response.data.data.roles)
         })
         .catch((error) => {
-            console.log(error);
+            XPopUp({
+                message: `Error loading roles`,
+                iconType: "error",
+                timer: "3000",
+                popUpPosition: "top",
+                iconColor: "red",
+            });
         })
     }
 
+    //Al cargar la página, consigue los roles y los datos del cliente
     useEffect(() => {
         loadClient();
         getRoles();
     }, [])
 
+    //Al cambiar los roles seleccionados, actualiza los roles del cliente
     useEffect(() => {
         const selectedRolesIds = selectedRoles.map(role => role.id);
         client.roles = selectedRolesIds;
-        console.log(client)
     }, [selectedRoles])
 
+    //Ejecuta la función putData al hacer submit
     function handleSubmit(event) {
         event.preventDefault();
         putData();
     }
 
+    //Consigue los datos del cliente
     const loadClient = async() => {
-        await userManagementApi
-        .get(`client/${id}`, { bearerToken: token })
+        await userManagementApi.get(`client/${id}`, { bearerToken: token })
         .then((response) => {
-            console.log(response)
             const client = response.data.data.client;
             setClient({
                 name: client.name,
@@ -65,23 +72,34 @@ const EditClient = () => {
             setDataLoading(false);
         })
         .catch((error) => {
-            console.log(error);
             setDataLoading(false);
+            XPopUp({
+                message: `Error loading client`,
+                iconType: "error",
+                timer: "3000",
+                popUpPosition: "top",
+                iconColor: "red",
+            });
         })
     }
 
+    //Envia una peticion put con los datos del cliente
     const putData = async() => {
-        console.log(client)
         setLoading(true);
+        
+        //Creación del objeto body con los datos del cliente
         const body = {
-            name: name,
-            email: email,
+            name: client.name,
+            email: client.email,
             roles: client.roles,
+            password_change: client.password,
         };
-        await userManagementApi
-        .put(`client/${id}`, body, { bearerToken: token })
+
+        //Eliminar nulos o undefined
+        Object.keys(body).forEach(key => body[key] == null && delete body[key]);
+
+        await userManagementApi.put(`client/${id}`, body, { bearerToken: token })
         .then((response) => {
-            console.log(response)
             XPopUp({
                 message: `Client edtied`,
                 iconType: "success",
@@ -92,7 +110,6 @@ const EditClient = () => {
             setLoading(false);
         })
         .catch((error) => {
-            console.log(error);
             setLoading(false);
             XPopUp({
                 message: `Error editing the client`,
@@ -101,6 +118,8 @@ const EditClient = () => {
                 popUpPosition: "top",
                 iconColor: "red",
             });
+
+            //Muestra los errores de validación
             const responseData = error.response.data;
             if (responseData.data && responseData.data.errors) {
                 const validationErrors = responseData.data.errors;
