@@ -71,7 +71,6 @@ function Organizations() {
 
   //Cuando se actualiza el array de organizaciones, se actualiza el array de cargando detalles
   useEffect(() => {
-    console.log(data)
     let load = []
       if(data){
         data.forEach((organizations) => {

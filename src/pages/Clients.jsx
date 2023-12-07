@@ -182,7 +182,6 @@ function Clients() {
       isLoading(true);
       await userManagementApi.get(`client?${radioValue}=${searchValue}`, { bearerToken: token })
         .then((response) => {
-          console.log(response);
           setData(response.data.data.clients);
         })
         .catch((error) => {
@@ -394,9 +393,7 @@ function Clients() {
                                 component: (
                                   <StyledGreenXButton
                                     onClick={() =>
-                                      console.log(
-                                        handleRemoveOrganization(element, organizations)
-                                      )
+                                      handleRemoveOrganization(element, organizations)
                                     }
                                   >
                                     <FontAwesomeIcon

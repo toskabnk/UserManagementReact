@@ -399,9 +399,7 @@ function Users() {
                                 component: (
                                   <StyledGreenXButton
                                     onClick={() =>
-                                      console.log(
-                                        handleRemoveOrganization(element, organizations)
-                                      )
+                                      handleRemoveOrganization(element, organizations)
                                     }
                                   >
                                     <FontAwesomeIcon

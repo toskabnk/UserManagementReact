@@ -161,11 +161,16 @@ function Roles() {
         await userManagementApi
           .get("role", { bearerToken: token })
           .then((response) => {
-            console.log(response);
             setData(response.data.data.roles);
           })
           .catch((error) => {
-            console.log(error);
+            XPopUp({
+              message:`Error getting roles`,
+              iconType:'error',
+              timer:'3000',
+              popUpPosition:'top',
+              iconColor: 'red',
+            })
           })
           .finally(() => {
             isLoading(false);

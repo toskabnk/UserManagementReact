@@ -62,8 +62,6 @@ const PasswordChange = () => {
                         errors: error
                     };
 
-                    console.log(errors);
-
                     setErrors(errors);
                     setPassword({
                         oldPassword: '',

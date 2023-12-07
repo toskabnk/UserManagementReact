@@ -50,7 +50,6 @@ function LoginPage() {
 
     //Comprueba si accedes a la pagina de login cuando estas autenticado
     useEffect(() => {
-        console.log(`Authentica useEffect ${isAuthenticated}`)
         if(isAuthenticated && !isSuccess){
             navigate('/')
         }
@@ -84,7 +83,6 @@ function LoginPage() {
             if(response.data.success === true){
                 //Mostramos el tick de confirmacion
                 setIsSuccess(true);
-                console.log(response.data.data);
                 //Cambiamos el estado del AuthProvider a autenticado
                 login();
 
@@ -113,7 +111,6 @@ function LoginPage() {
             
         })
         .catch((error) => {
-            console.log(error);
             //Inicializamos states
             setErrors('');
             setError('')

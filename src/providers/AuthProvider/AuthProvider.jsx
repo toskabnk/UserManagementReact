@@ -5,6 +5,7 @@ import AuthContext from './AuthContext';
 import { useSelector, useDispatch } from 'react-redux';
 import { deleteUser } from "../../redux/userSlice"
 import Swal from 'sweetalert2';
+import { XPopUp } from '@ximdex/xui-react/material';
 
 const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -45,7 +46,14 @@ const AuthProvider = ({ children }) => {
         navigate('/login?logout=true');
       }))
       .catch((error) => {
-        console.log(error);
+        XPopUp({
+          type: 'error',
+          title: 'Logout error',
+          text: 'An error has occurred while logging out',
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000
+        })
       });
   }
 

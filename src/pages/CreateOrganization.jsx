@@ -85,7 +85,13 @@ const CreateOrganization = () => {
             setClientsFixed(response.data.data.clients)
         })
         .catch((error) => {
-            console.log(error);
+            XPopUp({
+                message: `Error getting the clients`,
+                iconType: "error",
+                timer: "3000",
+                popUpPosition: "top",
+                iconColor: "red",
+            });
         })
     } 
 

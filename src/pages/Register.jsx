@@ -69,8 +69,6 @@ function Register() {
         //Elimina los campos vacios del objeto user
         Object.keys(copyUser).forEach(key => copyUser[key] == null && delete copyUser[key]);
 
-        console.log(copyUser)
-
         await userManagementApi.post('register', copyUser)
         .then(function(response) {
             if(response.data.success === true){
@@ -81,7 +79,6 @@ function Register() {
             }
         })
         .catch(function (error) {
-            console.log(error)
             setIsSuccess(false)
             setIsLoading(false)
             const responseData = error.response.data;
@@ -103,7 +100,6 @@ function Register() {
         if(client === null) return;
         await userManagementApi.get(`register/${client}`)
         .then(function(response) {
-            console.log(response)
             if(response.data.success === true){
                 setUser({
                     ...user,
