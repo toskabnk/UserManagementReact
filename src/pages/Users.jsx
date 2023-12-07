@@ -43,7 +43,7 @@ function Users() {
       denyButtonColor: "#43a1a2",
     }).then(async (result) => {
       if (result.isConfirmed) {
-        userManagementApi.delete(`user/${user.id}`, {bearerToken: token})
+        userManagementApi.delete(`member/${user.id}`, {bearerToken: token})
         .then((response) => {
           getUsers();
           XPopUp({
@@ -273,7 +273,6 @@ function Users() {
                   key={index}
                   identifier={element.id}
                   isCollapsable={true}
-                  functionButtonCollapsable={() => {console.log('test')}}
                   labelButtonCollapsable={
                     <>
                       <p style={{ marginRight: "1em" }}>
