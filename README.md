@@ -1,8 +1,43 @@
-# React + Vite
+# xDir Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Sistema de gestion de usuarios, clientes, organizaciones y roles de Ximdex
 
-Currently, two official plugins are available:
+## Requisitos
+En una instalacion local:
+- NodeJS 20 y NPM
+- Debemos tener instalada y configurada la API de https://github.com/XIMDEX/xdir-back
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Instalacion
+
+Clona el repositorio en una carpeta con el nombre del proyecto:
+```shell
+git clone https://github.com/XIMDEX/xdir-front.git
+```
+O en la carpeta actual con:
+```shell
+git clone https://github.com/XIMDEX/xdir-front.git .
+```
+
+Instala las dependencias con:
+
+```shell
+npm install
+```
+
+Renombra el archivo `.env.example` a `.env` y modifica el valor de `VITE_API_URL='DEV_API_URL'` con la direccion de la API de xDir.
+
+## Ejecucion
+
+Una vez instaladas las dependencias, puedes ejecutar el proyecto en un entorno local ejecutando el siguiente comando en una terminal:
+
+```shell
+npm run dev
+```
+
+## Compilacion
+
+Para compilar el proyecto, ejecuta el siguiente comando en una terminal:
+```shell
+npm run build
+```
+Se creara una carpeta dist en la raiz del proyecto, ahi se encontraran los assets utilizados, el codigo html y js del proyecto compilados.
